@@ -53,39 +53,6 @@ func helper(t *testing.T,
 
 }
 
-func TestCreateMatch(t *testing.T) {
-	client := &http.Client{}
-	server := httptest.NewServer(
-		http.HandlerFunc(createMatchHandler(formatter)))
-	defer server.Close()
-
-	body := []byte("Hello")
-
-	req,err := http.NewRequest("POST", server.URL, bytes.NewBuffer(body))
-	if err != nil {
-		t.Errorf("Error creating POST request: %v", err)
-	}
-
-	req.Header.Add("Content-Type", "application/json")
-
-	res,err := client.Do(req)
-	if err != nil {
-		t.Errorf("Error sending POST request: %v", err)
-	}
-
-	defer res.Body.Close()
-
-	payload, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		t.Errorf("Error reading response body: %v %s", err, payload)
-	}
-
-	if res.StatusCode != http.StatusCreated {
-		t.Errorf("Expected response status 201, received %s", res.Status)
-	}
-
-}
-
 func TestCars(t *testing.T){
 
 	// cars := [Car{id:1,seats:5}]

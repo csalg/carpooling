@@ -28,12 +28,3 @@ func initRoutes(mx *mux.Router, formatter *render.Render) {
 	mx.HandleFunc("/match", createMatchHandler(formatter)).Methods("POST")
 	mx.HandleFunc("/cars", carsHandler(formatter))
 }
-
-func testHandler(formatter *render.Render) http.HandlerFunc{
-
-	return func(w http.ResponseWriter, req *http.Request) {
-		formatter.JSON(w, http.StatusOK,
-		struct{ Test string }{"This is a test"})
-	}
-
-}

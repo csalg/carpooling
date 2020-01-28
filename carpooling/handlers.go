@@ -10,20 +10,11 @@ import (
 
 var cars []Car
 
-
-func createMatchHandler (formatter *render.Render) http.HandlerFunc {
-	return func(w http.ResponseWriter, req *http.Request) {
-		formatter.JSON(w,
-		http.StatusCreated,
-	struct{ Test string }{ "Hello" })
-	}
-}
-
 func carsHandler (formatter *render.Render) http.HandlerFunc {
 	// Load the list of available cars in the service and remove all previous data
 	// (existing journeys and cars). This method may be called more than once during 
 	// the life cycle of the service.
-	
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case "PUT":
