@@ -4,8 +4,10 @@ import (
 	"net/http"
 	"github.com/unrolled/render"
 	"encoding/json"
-	// "fmt"
+	"fmt"
 	// "io/ioutil"
+	// "reflect"
+	"strconv"
 )
 
 var cars []Car
@@ -85,9 +87,37 @@ func dropoffHandler (formatter *render.Render) http.HandlerFunc {
 	// A group of people requests to be dropped off. Whether they traveled or not.
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method{
+		case "POST":
 
-		http.Error(w, "Not implemented!", 400)
-		return
+			if r.Body == nil {
+				http.Error(w, "Body cannot be empty", 400)
+				return
+			}
+			r.ParseForm()
+			if len(r.Form["ID"]) == 0 {
+				http.Error(w, "Error parsing ID", 400)
+				return
+			}
+
+			id, err := strconv.Atoi(r.Form["ID"][0])
+			if err != nil {
+				http.Error(w, "Not an integer: " + strconv.Itoa(id),  400)
+				return
+			}
+			fmt.Println(r.Form["ID"][0], strconv.Itoa(id))
+
+			for i := 0; i != len(journeys); i++ {
+				if journeys[i].Id == id {
+					return
+				}
+			}
+			http.Error(w,"Not found", 404)
+			return
+		default:
+			http.Error(w, "Not implemented!", 400)
+			return
+		}
 	}
 }
 
