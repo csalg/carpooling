@@ -21,6 +21,7 @@ func carsHandler (formatter *render.Render) http.HandlerFunc {
 		case "PUT":
 			if r.Body == nil {
 				http.Error(w, "Body cannot be empty!", 400)
+				return
 			}
 			var cars_temp [] Car;
 			err := json.NewDecoder(r.Body).Decode(&cars_temp)
@@ -46,13 +47,39 @@ func carsHandler (formatter *render.Render) http.HandlerFunc {
 
 func journeyHandler (formatter *render.Render) http.HandlerFunc {
 	// A group of people requests to perform a journey.
+	// For now I'm just going to do things the naive way.
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method{
+		case "POST":
+			if r.Body == nil {
+				http.Error(w, "Body cannot be empty", 400)
+				return
+			}
 
-		http.Error(w, "Not implemented!", 400)
+			journey_temp := Journey{}
+
+			err := json.NewDecoder(r.Body).Decode(&journey_temp)
+			if err != nil {
+				http.Error(w, err.Error(), 400)
+				return
+			}
+
+			if journey_temp.People < 1 || journey_temp.People > 6 {
+				http.Error(w, "People must be between 1 and 6", 400)
+				return
+			}
+
+			journeys = append(journeys, journey_temp)
+			formatter.JSON(w,200,cars)
+			return
+		default:
+			http.Error(w, "Not implemented!", 400)
 		return
 	}
 }
+}
+
 
 func dropoffHandler (formatter *render.Render) http.HandlerFunc {
 	// A group of people requests to be dropped off. Whether they traveled or not.
@@ -63,6 +90,7 @@ func dropoffHandler (formatter *render.Render) http.HandlerFunc {
 		return
 	}
 }
+
 
 func locateHandler (formatter *render.Render) http.HandlerFunc {
 	// Given a group ID such that `ID=X`, return the car the group is traveling

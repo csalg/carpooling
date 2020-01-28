@@ -77,7 +77,7 @@ func TestCars(t *testing.T){
 
 func TestJourney(t *testing.T){
 
-	dispatch(t, journeyHandler, "POST", 400, []byte{})
+	dispatch(t, journeyHandler, "POST", 400, []byte{}) // **Body** _required_ A form with the group ID, such that `ID=X`
 
 	journey := Journey{ Id:1, People:5 }
 	b, err := json.Marshal(journey)
