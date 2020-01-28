@@ -9,6 +9,7 @@ import (
 )
 
 var cars []Car
+var journeys []Journey
 
 func carsHandler (formatter *render.Render) http.HandlerFunc {
 	// Load the list of available cars in the service and remove all previous data
@@ -40,5 +41,36 @@ func carsHandler (formatter *render.Render) http.HandlerFunc {
 			http.Error(w, "Wrong method", 400)
 			return
 		}
+	}
+}
+
+func journeyHandler (formatter *render.Render) http.HandlerFunc {
+	// A group of people requests to perform a journey.
+
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		http.Error(w, "Not implemented!", 400)
+		return
+	}
+}
+
+func dropoffHandler (formatter *render.Render) http.HandlerFunc {
+	// A group of people requests to be dropped off. Whether they traveled or not.
+
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		http.Error(w, "Not implemented!", 400)
+		return
+	}
+}
+
+func locateHandler (formatter *render.Render) http.HandlerFunc {
+	// Given a group ID such that `ID=X`, return the car the group is traveling
+	// with, or no car if they are still waiting to be served.
+
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		http.Error(w, "Not implemented!", 400)
+		return
 	}
 }

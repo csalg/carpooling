@@ -1,7 +1,6 @@
 package main
 
 import (
-	"net/http"
 	"github.com/codegangsta/negroni"
 	"github.com/gorilla/mux"
 	"github.com/unrolled/render"
@@ -24,7 +23,8 @@ func NewServer() *negroni.Negroni {
 }
 
 func initRoutes(mx *mux.Router, formatter *render.Render) {
-	mx.HandleFunc("/test", testHandler(formatter)).Methods("GET")
-	mx.HandleFunc("/match", createMatchHandler(formatter)).Methods("POST")
 	mx.HandleFunc("/cars", carsHandler(formatter))
+	mx.HandleFunc("/journey", journeyHandler(formatter))
+	mx.HandleFunc("/dropoff", dropoffHandler(formatter))
+	mx.HandleFunc("/locate", locateHandler(formatter))
 }
