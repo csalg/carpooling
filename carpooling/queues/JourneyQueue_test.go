@@ -69,5 +69,36 @@ func TestJourneyQueueDelete(t *testing.T){
 
 
 func TestGetOldestSmallerThan(t *testing.T){
-	
+	jq := NewJourneyQueue()
+	j1, err1 := NewJourney(1,5)
+	j2, err2 := NewJourney(2,1)
+	if err1 != nil || err2 != nil {
+		t.Errorf("Error constructing journeys.")
+	}
+
+	if 	jq.Add(j1) != nil || jq.Add(j2) != nil {
+		t.Errorf("Error adding journeys to queue.")
+	}
+
+	for i:= 3; i != 100; i++ {
+		j,_ := NewJourney(i, i%5+2)
+		jq.Add(j)
+	}
+
+	old1, err4 := jq.GetOldestSmallerThan(6)
+	if old1.Value != *j1 || err4 != nil{
+		t.Errorf("Error retrieving oldest journey.")
+	}
+
+	old2, err5 := jq.GetOldestSmallerThan(1)
+	if old2.Value != *j2 || err5 != nil{
+		t.Errorf("Error retrieving journey smaller than or equal to 1.")
+	}
+
+	jq.Delete(2)
+
+	old3, err6 := jq.GetOldestSmallerThan(1)
+	if old3 != nil || err6 != nil{
+		t.Errorf("Error retrieving a null pointer when there are no matching journeys.")
+	}
 }

@@ -14,7 +14,7 @@ import (
 type Journey struct {
 	Id int `json:"id"`
 	People int `json:"people"`
-	InTransit bool
+	Travelling bool
 	InCar int
 	timestamp int64
 }
@@ -37,8 +37,6 @@ func (j *Journey) SetTimestamp(){
 func (j *Journey) GetTimestamp()int64 {
 	return j.timestamp
 }
-
-
 
 
 
@@ -89,8 +87,9 @@ func (q *JourneyQueue) GetOldestSmallerThan(val int)(*list.Element, error){
 	if val > 6 || val < 1 { return nil, errors.New("Value is outside range") }
 	timestamp := time.Now().UnixNano()
 	el := new(list.Element)
+	el = nil
 	for i := 0; i != val; i++ {
-		temp := q.ByPeople[0].Front()
+		temp := q.ByPeople[i].Front()
 		if temp != nil {
 			if temp.Value.(Journey).timestamp < timestamp { 
 				timestamp = temp.Value.(Journey).timestamp
