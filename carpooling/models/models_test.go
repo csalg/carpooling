@@ -29,7 +29,7 @@ func TestCarQueueAdd(t *testing.T){
 	c, err = NewCar(2,6)
 	err = cq.Add(c)
 	if err != nil {
-		t.Errorf("Queue didn't insert a perfectly valid car!")
+		t.Errorf("Queue didn't insert a valid car!")
 	}
 
 	if cq.Add(nil) == nil {
@@ -60,11 +60,11 @@ func TestCarQueueMove(t *testing.T){
 		t.Errorf(err1.Error())
 	}
 
-	if cq.ByAvailableSeats[4] != c2 {
+	if cq.ByAvailableSeats[4].Front().Value != c2 {
 		t.Errorf("Car was not moved to new head")
 	}
 
-	if cq.ByAvailableSeats[6] != c1 {
+	if cq.ByAvailableSeats[6].Front().Value != c1 {
 		t.Errorf("Old head was not successfully updated")
 	}
 }
