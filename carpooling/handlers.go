@@ -4,10 +4,11 @@ import (
 	"net/http"
 	"github.com/unrolled/render"
 	"encoding/json"
-	"fmt"
+	// "fmt"
 	// "io/ioutil"
 	// "reflect"
 	"strconv"
+	"github.com/csalg/carpooling/models"
 )
 
 var cars []Car
@@ -53,7 +54,9 @@ func journeyHandler (formatter *render.Render) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method{
+
 		case "POST":
+
 			if r.Body == nil {
 				http.Error(w, "Body cannot be empty", 400)
 				return
@@ -88,12 +91,14 @@ func dropoffHandler (formatter *render.Render) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method{
+
 		case "POST":
 
 			if r.Body == nil {
 				http.Error(w, "Body cannot be empty", 400)
 				return
 			}
+
 			r.ParseForm()
 			if len(r.Form["ID"]) == 0 {
 				http.Error(w, "Error parsing ID", 400)
@@ -105,17 +110,18 @@ func dropoffHandler (formatter *render.Render) http.HandlerFunc {
 				http.Error(w, "Not an integer: " + strconv.Itoa(id),  400)
 				return
 			}
-			fmt.Println(r.Form["ID"][0], strconv.Itoa(id))
 
 			for i := 0; i != len(journeys); i++ {
 				if journeys[i].Id == id {
 					return
 				}
 			}
+
 			http.Error(w,"Not found", 404)
 			return
+			
 		default:
-			http.Error(w, "Not implemented!", 400)
+			http.Error(w, "Not implemented", 400)
 			return
 		}
 	}
