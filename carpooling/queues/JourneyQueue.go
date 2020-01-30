@@ -1,9 +1,9 @@
 package queues
 
 import (
-	// "time"
-	// "fmt"
-	// "errors"
+	"time"
+	"fmt"
+	"errors"
 	"container/list"
 )
 
@@ -16,76 +16,88 @@ type Journey struct {
 	People int `json:"people"`
 	InTransit bool
 	InCar int
-	timestamp int
+	timestamp int64
 }
 
-func NewJourney(id int, people int){
-
+func NewJourney(id int, people int) (*Journey, error) {
+	if people > 6 || people < 1 {
+		return nil, errors.New(fmt.Sprintf("Number of people must be between 1 and 6. Got %d", people))
+	}
+	j := new(Journey)
+	j.Id = id
+	j.People = people
+	j.SetTimestamp()
+	return j, nil
 }
+
+func (j *Journey) SetTimestamp(){
+	j.timestamp = time.Now().UnixNano()
+}
+
+func (j *Journey) GetTimestamp()int64 {
+	return j.timestamp
+}
+
+
+
+
+
+
+
 
 type JourneyQueue struct {
-	ById map[int]*Journey
+	ById map[int]*list.Element
 	ByPeople [6]list.List  // Journeys can be 1-6 people.
 }
 
-// func (q *JourneyQueue) Insert (j *Journey) {
-// 	// Create a pointer from id j
-// 	// Stick at the tail of the queue by following the prev pointer to the head
-// 	// Change both *tail.next and *head.prev to point to it
-// 	// Insert a pointer to it in ByID
-// }
 
-// func (q *JourneyQueue) Delete () {
-// 	// Follow the 
-// }
-
-// func (q *JourneyQueue) SetInTransit(j *Journey){
-
-// }
-
-// func (q *JourneyQueue) GetOldestSmallerThan(val int){
-
-// }
+func NewJourneyQueue()*JourneyQueue {
+	jq := new(JourneyQueue)
+	jq.ById = make(map[int]*list.Element)
+	return jq
+}
 
 
+func (q *JourneyQueue) Add(j *Journey)error {
 
-// // func (cq *CarQueue) Match(jq *JourneyQueue{
-// // 	// Matches all possible journeys to available cars in 
-// // 	// journey arrival order
+	if j == nil {
+		return errors.New("Cannot add a null pointer.")
+	}
 
-// // 	maxAvailable := 6
-// // 	for maxAvailable < 0 {
-// // 	// For starters, we need to know what the largest car capacity is so that we can efficiently
-// // 	// filter the journeys queue.
-// // 	for cq.ByAvailableSeats[maxAvailable] == nil && maxAvailable > 0 {
-// // 		maxAvailable--
-// // 	}
+	_, exists := q.ById[j.Id]
+	if exists {
+		return errors.New("Key already exists")
+	}
 
-// // 	oldest_journey := jq.GetOldestSmallerThan(maxAvailable) 
-// // 	if oldest_journey == nil {
-// // 		// In this case all journeys in the queue are of more people than the
-// // 		// largest car available so we exit the loop.
-// // 		break
-// // 	}
+	q.ByPeople[j.People-1].PushBack(*j)
+	q.ById[j.Id] = 	q.ByPeople[j.People-1].Back()
 
-// // 	smallest_car := cq.GetCarLargerThan(oldest_journey.People)
+	return nil
+}
 
-// // 	cq.AssignCar(smallest_car, oldest_journey)
-// // 	jq.SetInTransit(oldest_journey)
+func (q *JourneyQueue) Delete (id int) error {
+	el, ok := q.ById[id]
+	if !ok { return errors.New("Id not found")}
+	q.ByPeople[el.Value.(Journey).People-1].Remove(el)
+	delete(q.ById, id)
+	return nil
+
+}
 
 
-// // 	// timestamp := time.Now().Unix()
-// // 	// oldest_journey := new(Journey);
+func (q *JourneyQueue) GetOldestSmallerThan(val int)(*list.Element, error){
+	if val > 6 || val < 1 { return nil, errors.New("Value is outside range") }
+	timestamp := time.Now().UnixNano()
+	el := new(list.Element)
+	for i := 0; i != val; i++ {
+		temp := q.ByPeople[0].Front()
+		if temp != nil {
+			if temp.Value.(Journey).timestamp < timestamp { 
+				timestamp = temp.Value.(Journey).timestamp
+				el = temp
+			}
+		}
+	}
+	return el, nil
 
-// // 	// fmt.Println(timestamp)
-// // 	// for i := 0; i != maxAvailable-1; i++ { // up to maxAvailable -1 because indexing is different
-// // 	// 										// Will probably move this implementation detail to a method
-// // 	// 										// getOldestSmallerThan()
-// // 	// 	if jq.ByPeople[i]
-
-// // 	// }
-
-// // 	// All of this can be done in O(1), so it scales well
-// // 	}
-
-// // }
+}

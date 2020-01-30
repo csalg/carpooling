@@ -8,6 +8,7 @@ import (
 
 // TODO:
 // * Implement that cq.match function
+// * Move out the models to their own subpackage so it's cleaner
 
 
 type Car struct {

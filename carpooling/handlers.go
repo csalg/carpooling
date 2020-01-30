@@ -11,6 +11,9 @@ import (
 	"github.com/csalg/carpooling/queues"
 )
 
+// TO DO:
+// * Move a bunch of logic further downstream to the queues and models
+
 var cars []Car
 var journeys []Journey
 
