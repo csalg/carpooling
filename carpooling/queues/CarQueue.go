@@ -1,16 +1,13 @@
-package models
+package queues
 
 import (
-	// "time"
-	// "fmt"
 	"errors"
 	"container/list"
 )
 
+
 // TODO:
 // * Implement that cq.match function
-// * Implement other methods necessary for that function to work
-// * Write unit tests
 
 
 type Car struct {
@@ -18,6 +15,7 @@ type Car struct {
 	Seats int `json:"seats"`
 	seatsAvailable int
 }
+
 
 func NewCar(id int, seats int) (*Car, error) {
 	if !(seats == 4 || seats == 6){
@@ -28,6 +26,7 @@ func NewCar(id int, seats int) (*Car, error) {
 	return &c, nil
 }
 
+
 func (c *Car) SetSeatsAvailable (val int) error{
 	if val < 0 || val > 6 {
 		return errors.New("Cars are required to have 0 to 6 available seats.")
@@ -36,14 +35,20 @@ func (c *Car) SetSeatsAvailable (val int) error{
 	return nil
 }
 
+
+
+
+
 type CarQueue struct {
 	ByAvailableSeats [7]list.List // Cars can have 0-6 seats available
 }
+
 
 /*
 A constructor is not necessary; simply create a new instance 
 by either `q := new(CarQueue)` or `q := CarQueue{}`
 */
+
 
 func (q *CarQueue) Add(c *Car) error {
 	if c == nil {
@@ -53,6 +58,7 @@ func (q *CarQueue) Add(c *Car) error {
 	q.ByAvailableSeats[c.seatsAvailable].PushFront(c)
 	return nil
 }
+
 
 func (q *CarQueue) Move(c *Car, seatsAvailable int) error {
 	if c == nil {
@@ -73,6 +79,7 @@ func (q *CarQueue) Move(c *Car, seatsAvailable int) error {
 	return nil
 }
 
+
 func (q *CarQueue) GetCarLargerThan(val int) *Car {
 	for i := val; i <= 6; i++ {
 		if q.ByAvailableSeats[i].Front() != nil { 
@@ -90,56 +97,6 @@ func (q *CarQueue) AssignCar(c *Car, j *Journey) error {
 	}
 	return q.Move(c, c.seatsAvailable - j.People)
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-type Journey struct {
-	Id int `json:"id"`
-	People int `json:"people"`
-	InTransit bool
-	InCar int
-	timestamp int
-}
-
-func NewJourney(id int, people int){
-
-}
-
-type JourneyQueue struct {
-	ById map[int]*Journey
-	ByPeople [6]list.List  // Journeys can be 1-6 people.
-}
-
-// func (q *JourneyQueue) Insert (j *Journey) {
-// 	// Create a pointer from id j
-// 	// Stick at the tail of the queue by following the prev pointer to the head
-// 	// Change both *tail.next and *head.prev to point to it
-// 	// Insert a pointer to it in ByID
-// }
-
-// func (q *JourneyQueue) Delete () {
-// 	// Follow the 
-// }
-
-// func (q *JourneyQueue) SetInTransit(j *Journey){
-
-// }
-
-// func (q *JourneyQueue) GetOldestSmallerThan(val int){
-
-// }
-
 
 
 // // func (cq *CarQueue) Match(jq *JourneyQueue{

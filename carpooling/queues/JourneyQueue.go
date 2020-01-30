@@ -1,108 +1,15 @@
-package models
+package queues
 
 import (
 	// "time"
 	// "fmt"
-	"errors"
+	// "errors"
 	"container/list"
 )
 
 // TODO:
-// * Implement that cq.match function
 // * Implement other methods necessary for that function to work
 // * Write unit tests
-
-
-type Car struct {
-	Id int `json:"id"`
-	Seats int `json:"seats"`
-	seatsAvailable int
-}
-
-func NewCar(id int, seats int) (*Car, error) {
-	if !(seats == 4 || seats == 6){
-		return nil, errors.New("Cars are required to have 4 to 6 seats")
-	}
-	c := Car{Id:id,Seats:seats}
-	c.SetSeatsAvailable(seats)
-	return &c, nil
-}
-
-func (c *Car) SetSeatsAvailable (val int) error{
-	if val < 0 || val > 6 {
-		return errors.New("Cars are required to have 0 to 6 available seats.")
-	}	
-	c.seatsAvailable = val
-	return nil
-}
-
-type CarQueue struct {
-	ByAvailableSeats [7]list.List // Cars can have 0-6 seats available
-}
-
-/*
-A constructor is not necessary; simply create a new instance 
-by either `q := new(CarQueue)` or `q := CarQueue{}`
-*/
-
-func (q *CarQueue) Add(c *Car) error {
-	if c == nil {
-		return errors.New("Cannot insert a null pointer")
-	}
-
-	q.ByAvailableSeats[c.seatsAvailable].PushFront(c)
-	return nil
-}
-
-func (q *CarQueue) Move(c *Car, seatsAvailable int) error {
-	if c == nil {
-		return errors.New("Cannot move a null pointer")
-	}
-
-	if q.ByAvailableSeats[c.seatsAvailable].Front().Value != c {
-		return errors.New("Car not found in head of linked list.")
-	}
-
-	prev := c.seatsAvailable
-	err := c.SetSeatsAvailable(seatsAvailable)
-	if err != nil {
-		return err
-	}
-	q.ByAvailableSeats[prev].Remove(q.ByAvailableSeats[prev].Front())
-	q.ByAvailableSeats[seatsAvailable].PushFront(c)
-	return nil
-}
-
-func (q *CarQueue) GetCarLargerThan(val int) *Car {
-	for i := val; i <= 6; i++ {
-		if q.ByAvailableSeats[i].Front() != nil { 
-			c, ok := q.ByAvailableSeats[i].Front().Value.(*Car)
-			if ok { return c }
-		}
-	}
-	return nil
-}
-
-
-func (q *CarQueue) AssignCar(c *Car, j *Journey) error {
-	if c.seatsAvailable < j.People { 
-		return errors.New("Cannot assign car with less seats than people in the journey") 
-	}
-	return q.Move(c, c.seatsAvailable - j.People)
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 type Journey struct {
 	Id int `json:"id"`

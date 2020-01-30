@@ -8,7 +8,7 @@ import (
 	// "io/ioutil"
 	// "reflect"
 	"strconv"
-	"github.com/csalg/carpooling/models"
+	"github.com/csalg/carpooling/queues"
 )
 
 var cars []Car
