@@ -9,6 +9,8 @@ import (
 // TODO:
 // * Implement that cq.match function
 // * Move out the models to their own subpackage so it's cleaner
+// * Create methods for marshalling and unmarshalling json
+// * Hook things up with the API handlers
 
 
 type Car struct {
@@ -93,10 +95,11 @@ func (q *CarQueue) GetCarLargerThan(val int) *Car {
 
 
 func (q *CarQueue) AssignCar(c *Car, j *Journey) error {
-	if c.seatsAvailable < j.People { 
-		return errors.New("Cannot assign car with less seats than people in the journey") 
-	}
-	return q.Move(c, c.seatsAvailable - j.People)
+	// if c.seatsAvailable < j.People { 
+	// 	return errors.New("Cannot assign car with less seats than people in the journey") 
+	// }
+	// return q.Move(c, c.seatsAvailable - j.People)
+	return nil
 }
 
 

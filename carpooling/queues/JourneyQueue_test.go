@@ -60,8 +60,8 @@ func TestJourneyQueueDelete(t *testing.T){
 		if exists { t.Errorf("Error deleting key from JourneyQueue")}
 	}
 
-	for i :=0; i!=6; i++{
-		if jq.ByPeople[i].Front() != nil {
+	for i :=0; i!=7; i++{
+		if jq.BySize[i].Front() != nil {
 			t.Errorf("There are still some values left in ByPeople")
 		}
 	}
@@ -86,12 +86,12 @@ func TestGetOldestSmallerThan(t *testing.T){
 	}
 
 	old1, err4 := jq.GetOldestSmallerThan(6)
-	if old1.Value != *j1 || err4 != nil{
+	if old1.Value != j1 || err4 != nil{
 		t.Errorf("Error retrieving oldest journey.")
 	}
 
 	old2, err5 := jq.GetOldestSmallerThan(1)
-	if old2.Value != *j2 || err5 != nil{
+	if old2.Value != j2 || err5 != nil{
 		t.Errorf("Error retrieving journey smaller than or equal to 1.")
 	}
 
