@@ -1,145 +1,78 @@
+// This is the specialized version of a HashQueue for cars, with additional 
+// logic wrapping the Car json deserializer, and a matching procedure between
+// a CarQueue and a JourneyQueue.
 package queues
 
 import (
 	"errors"
 	"container/list"
+	"github.com/csalg/carpooling/models"
+	"io"
+	// "fmt"
 )
 
-
-// TODO:
-// * Implement that cq.match function
-// * Move out the models to their own subpackage so it's cleaner
-// * Create methods for marshalling and unmarshalling json
-// * Hook things up with the API handlers
-
-
-type Car struct {
-	Id int `json:"id"`
-	Seats int `json:"seats"`
-	seatsAvailable int
+type carQueue struct {
+	HashQueue
 }
 
+// NewCarQueue is the constructor for carQueue, which is kept private
+// to prevent the client from not initializing the map and getting nil
+// pointer errors
+func NewCarQueue()*carQueue {
+	jq := new(carQueue)
+	jq.ById = make(map[int]*list.Element)
+	return jq
+}
 
-func NewCar(id int, seats int) (*Car, error) {
-	if !(seats == 4 || seats == 6){
-		return nil, errors.New("Cars are required to have 4 to 6 seats")
+// This is just sugar for changeSize.
+func (q *carQueue) Move(el *list.Element, new_seats_available int) error {
+	el, err := q.changeSize(el,new_seats_available)
+	if err != nil {return err}
+	err = el.Value.(*models.Car).SetSeatsAvailable(new_seats_available)
+	return err
+}
+
+// MakeFromJsonRequest first calls the BodyToCars decoder and
+// if that succeeds overwrites the CarQueue with the new ones.
+func (q *carQueue) MakeFromJsonRequest(b io.ReadCloser)error{
+
+	cars, err := models.BodyToCars(b)
+	if err != nil { return err }
+	q = NewCarQueue()
+
+	for _, car := range *cars {
+		q.Add(&car)
 	}
-	c := Car{Id:id,Seats:seats}
-	c.SetSeatsAvailable(seats)
-	return &c, nil
-}
 
-
-func (c *Car) SetSeatsAvailable (val int) error{
-	if val < 0 || val > 6 {
-		return errors.New("Cars are required to have 0 to 6 available seats.")
-	}	
-	c.seatsAvailable = val
 	return nil
 }
 
-
-
-
-
-type CarQueue struct {
-	ByAvailableSeats [7]list.List // Cars can have 0-6 seats available
-}
-
-
-/*
-A constructor is not necessary; simply create a new instance 
-by either `q := new(CarQueue)` or `q := CarQueue{}`
-*/
-
-
-func (q *CarQueue) Add(c *Car) error {
-	if c == nil {
-		return errors.New("Cannot insert a null pointer")
-	}
-
-	q.ByAvailableSeats[c.seatsAvailable].PushFront(c)
-	return nil
-}
-
-
-func (q *CarQueue) Move(c *Car, seatsAvailable int) error {
-	if c == nil {
-		return errors.New("Cannot move a null pointer")
-	}
-
-	if q.ByAvailableSeats[c.seatsAvailable].Front().Value != c {
-		return errors.New("Car not found in head of linked list.")
-	}
-
-	prev := c.seatsAvailable
-	err := c.SetSeatsAvailable(seatsAvailable)
-	if err != nil {
-		return err
-	}
-	q.ByAvailableSeats[prev].Remove(q.ByAvailableSeats[prev].Front())
-	q.ByAvailableSeats[seatsAvailable].PushFront(c)
-	return nil
-}
-
-
-func (q *CarQueue) GetCarLargerThan(val int) *Car {
+// GetCarLargerThan returns a car larger than or equal to val
+func (q *carQueue) GetCarLargerThan(val int) (*list.Element, *models.Car, error) {
 	for i := val; i <= 6; i++ {
-		if q.ByAvailableSeats[i].Front() != nil { 
-			c, ok := q.ByAvailableSeats[i].Front().Value.(*Car)
-			if ok { return c }
+		if q.BySize[i].Front() != nil { 
+			c, ok := q.BySize[i].Front().Value.(*models.Car)
+			if ok { return q.BySize[i].Front(), c, nil }
 		}
 	}
-	return nil
+	return nil, nil, errors.New("Car not found!")
 }
 
-
-func (q *CarQueue) AssignCar(c *Car, j *Journey) error {
-	// if c.seatsAvailable < j.People { 
-	// 	return errors.New("Cannot assign car with less seats than people in the journey") 
-	// }
-	// return q.Move(c, c.seatsAvailable - j.People)
-	return nil
+// MaxAvailable finds the car with the most seats available 
+// and returns the amount.
+func (q *carQueue) MostAvailableSeats() int {
+	for i := len(q.BySize)-1; i != -1; i-- {
+		if q.BySize[i].Front() != nil { 
+			return i
+		}
+	}
+	return 0
 }
 
-
-// // func (cq *CarQueue) Match(jq *JourneyQueue{
-// // 	// Matches all possible journeys to available cars in 
-// // 	// journey arrival order
-
-// // 	maxAvailable := 6
-// // 	for maxAvailable < 0 {
-// // 	// For starters, we need to know what the largest car capacity is so that we can efficiently
-// // 	// filter the journeys queue.
-// // 	for cq.ByAvailableSeats[maxAvailable] == nil && maxAvailable > 0 {
-// // 		maxAvailable--
-// // 	}
-
-// // 	oldest_journey := jq.GetOldestSmallerThan(maxAvailable) 
-// // 	if oldest_journey == nil {
-// // 		// In this case all journeys in the queue are of more people than the
-// // 		// largest car available so we exit the loop.
-// // 		break
-// // 	}
-
-// // 	smallest_car := cq.GetCarLargerThan(oldest_journey.People)
-
-// // 	cq.AssignCar(smallest_car, oldest_journey)
-// // 	jq.SetInTransit(oldest_journey)
-
-
-// // 	// timestamp := time.Now().Unix()
-// // 	// oldest_journey := new(Journey);
-
-// // 	// fmt.Println(timestamp)
-// // 	// for i := 0; i != maxAvailable-1; i++ { // up to maxAvailable -1 because indexing is different
-// // 	// 										// Will probably move this implementation detail to a method
-// // 	// 										// getOldestSmallerThan()
-// // 	// 	if jq.ByPeople[i]
-
-// // 	// }
-
-// // 	// All of this can be done in O(1), so it scales well
-// // 	}
-
-// // }
+func (q *carQueue ) GetById(id int) (*list.Element, *models.Car, error){
+	el, ok := q.ById[id]
+	if !ok {
+		return nil, nil, errors.New("Not found")
+	}
+	return el, el.Value.(*models.Car), nil
+}

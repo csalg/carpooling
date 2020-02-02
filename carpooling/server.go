@@ -23,8 +23,8 @@ func NewServer() *negroni.Negroni {
 }
 
 func initRoutes(mx *mux.Router, formatter *render.Render) {
-	mx.HandleFunc("/cars", carsHandler(formatter))
-	mx.HandleFunc("/journey", journeyHandler(formatter))
-	mx.HandleFunc("/dropoff", dropoffHandler(formatter))
-	mx.HandleFunc("/locate", locateHandler(formatter))
+	mx.HandleFunc("/cars", CarsHandler(formatter))
+	mx.HandleFunc("/journey", JourneyHandler(formatter))
+	// mx.HandleFunc("/dropoff", DropoffHandler(formatter))
+	// mx.HandleFunc("/locate", LocateHandler(formatter))
 }

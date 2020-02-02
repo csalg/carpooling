@@ -3,36 +3,25 @@ package queues
 import (
 	"testing"
 	"fmt"
+	"github.com/csalg/carpooling/models"
 )
-
-func TestNewJourney(t *testing.T){
-
-	for i := -10; i !=20; i++ {
-		_, err := NewJourney(i,i)
-		if (i <= 6 && i >= 1) {
-			if err != nil  { t.Errorf(err.Error()) }
-		} else if err == nil {
-			t.Errorf("Journey with %d people was created!", i)
-		}	
-	}
-}
 
 func TestJourneyQueueAdd(t *testing.T){
 	jq := NewJourneyQueue()
 
-	j, err := NewJourney(1,7)
+	j, err := models.NewJourney(1,7)
 	err = jq.Add(j)
 	if err == nil {
 		t.Errorf("Queue inserted a journey outside range!")
 	}
 
-	j, err = NewJourney(1,2)
+	j, err = models.NewJourney(1,2)
 	err = jq.Add(j)
 	if err != nil {
 		t.Errorf("Failed to insert a valid journey.")
 	}
 
-	j, err = NewJourney(1,3)
+	j, err = models.NewJourney(1,3)
 	err = jq.Add(j)
 	if err == nil {
 		t.Errorf("Inserted a journey with a known duplicate key.")
@@ -47,7 +36,7 @@ func TestJourneyQueueDelete(t *testing.T){
 	jq := NewJourneyQueue()
 
 	for i := 1; i != 500; i++ {
-		j, err := NewJourney(i,i%5+1)
+		j, err := models.NewJourney(i,i%5+1)
 		err = jq.Add(j)
 		if err != nil {
 			t.Errorf(fmt.Sprintf("Error adding journey. i=%d", i))
@@ -70,8 +59,8 @@ func TestJourneyQueueDelete(t *testing.T){
 
 func TestGetOldestSmallerThan(t *testing.T){
 	jq := NewJourneyQueue()
-	j1, err1 := NewJourney(1,5)
-	j2, err2 := NewJourney(2,1)
+	j1, err1 := models.NewJourney(1,5)
+	j2, err2 := models.NewJourney(2,1)
 	if err1 != nil || err2 != nil {
 		t.Errorf("Error constructing journeys.")
 	}
@@ -81,24 +70,24 @@ func TestGetOldestSmallerThan(t *testing.T){
 	}
 
 	for i:= 3; i != 100; i++ {
-		j,_ := NewJourney(i, i%5+2)
+		j,_ := models.NewJourney(i, i%5+2)
 		jq.Add(j)
 	}
 
-	old1, err4 := jq.GetOldestSmallerThan(6)
-	if old1.Value != j1 || err4 != nil{
+	_, old1, err4 := jq.GetOldestSmallerThan(6)
+	if old1 != j1 || err4 != nil{
 		t.Errorf("Error retrieving oldest journey.")
 	}
 
-	old2, err5 := jq.GetOldestSmallerThan(1)
-	if old2.Value != j2 || err5 != nil{
+	_, old2, err5 := jq.GetOldestSmallerThan(1)
+	if old2 != j2 || err5 != nil{
 		t.Errorf("Error retrieving journey smaller than or equal to 1.")
 	}
 
 	jq.Delete(2)
 
-	old3, err6 := jq.GetOldestSmallerThan(1)
-	if old3 != nil || err6 != nil{
+	_, old3, err6 := jq.GetOldestSmallerThan(1)
+	if old3 != nil || err6 == nil{
 		t.Errorf("Error retrieving a null pointer when there are no matching journeys.")
 	}
 }

@@ -3,47 +3,40 @@ package main
 import (
 	"net/http"
 	"github.com/unrolled/render"
-	"encoding/json"
+	// "encoding/json"
 	// "fmt"
 	// "io/ioutil"
 	// "reflect"
 	"strconv"
 	"github.com/csalg/carpooling/queues"
+	// "github.com/csalg/carpooling/models"
 )
 
 // TO DO:
 // * Move a bunch of logic further downstream to the queues and models
 
-var cars []Car
-var journeys []Journey
+var cq = queues.NewCarQueue()
+var jq = queues.NewJourneyQueue()
 
-func carsHandler (formatter *render.Render) http.HandlerFunc {
-	// Load the list of available cars in the service and remove all previous data
-	// (existing journeys and cars). This method may be called more than once during 
-	// the life cycle of the service.
-
+// CarsHandler loads the list of available cars in the service 
+// and removes all previous data (existing journeys and cars).
+// This method may be called more than once during the life cycle 
+// of the service.
+func CarsHandler (formatter *render.Render) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case "PUT":
-			if r.Body == nil {
-				http.Error(w, "Body cannot be empty!", 400)
-				return
-			}
-			var cars_temp [] Car;
-			err := json.NewDecoder(r.Body).Decode(&cars_temp)
+
+			err := cq.MakeFromJsonRequest(r.Body)
 			if err != nil {
 				http.Error(w, err.Error(), 400)
 				return
 			}
-			for i:=0; i!=len(cars_temp); i++ {
-				if (cars_temp[i].Seats > 6 || cars_temp[i].Seats < 4) {
-					http.Error(w, "Input validation error: cars can only have between 4 and 6 seats!", 400)
-					return
-				}
-				cars = cars_temp
-				formatter.JSON(w,http.StatusOK,cars)
-				return
-			}
+
+			jq = queues.NewJourneyQueue()
+			formatter.JSON(w,http.StatusOK,"Cars updated successfully")
+			return
+
 		default:
 			http.Error(w, "Wrong method", 400)
 			return
@@ -51,35 +44,24 @@ func carsHandler (formatter *render.Render) http.HandlerFunc {
 	}
 }
 
-func journeyHandler (formatter *render.Render) http.HandlerFunc {
-	// A group of people requests to perform a journey.
-	// For now I'm just going to do things the naive way.
+// JourneyHandler registers individual groups of people 
+// looking for rides on the system
+func JourneyHandler (formatter *render.Render) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method{
 
 		case "POST":
 
-			if r.Body == nil {
-				http.Error(w, "Body cannot be empty", 400)
-				return
-			}
+			err := jq.AddFromJsonRequest(r.Body)
 
-			journey_temp := Journey{}
-
-			err := json.NewDecoder(r.Body).Decode(&journey_temp)
 			if err != nil {
 				http.Error(w, err.Error(), 400)
 				return
 			}
 
-			if journey_temp.People < 1 || journey_temp.People > 6 {
-				http.Error(w, "People must be between 1 and 6", 400)
-				return
-			}
-
-			journeys = append(journeys, journey_temp)
-			formatter.JSON(w,200,cars)
+			queues.Match(cq,jq)
+			formatter.JSON(w,200,"Successfully posted")
 			return
 		default:
 			http.Error(w, "Not implemented!", 400)
@@ -88,19 +70,19 @@ func journeyHandler (formatter *render.Render) http.HandlerFunc {
 }
 }
 
-
-func dropoffHandler (formatter *render.Render) http.HandlerFunc {
-	// A group of people requests to be dropped off. Whether they traveled or not.
-
+// DropoffHandler deletes journeys from the system. Specs: 
+// **Body** _required_ A form with the group ID, such that `ID=X`
+// **Content Type** `application/x-www-form-urlencoded`
+// Responses:
+// * **200 OK** or **204 No Content** When the group is unregistered correctly.
+// * **404 Not Found** When the group is not to be found.
+// * **400 Bad Request** When there is a failure in the request format or the
+//   payload can't be unmarshalled.
+func DropoffHandler (formatter *render.Render) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method{
 
 		case "POST":
-
-			if r.Body == nil {
-				http.Error(w, "Body cannot be empty", 400)
-				return
-			}
 
 			r.ParseForm()
 			if len(r.Form["ID"]) == 0 {
@@ -114,13 +96,13 @@ func dropoffHandler (formatter *render.Render) http.HandlerFunc {
 				return
 			}
 
-			for i := 0; i != len(journeys); i++ {
-				if journeys[i].Id == id {
-					return
-				}
+			if !jq.Has(id){
+				http.Error(w,"Not found", 404)
+				return
 			}
 
-			http.Error(w,"Not found", 404)
+			err = queues.Dropoff(cq, jq, id)
+			if err != nil { http.Error(w,err.Error(), 400) }
 			return
 			
 		default:
@@ -130,10 +112,9 @@ func dropoffHandler (formatter *render.Render) http.HandlerFunc {
 	}
 }
 
-
-func locateHandler (formatter *render.Render) http.HandlerFunc {
-	// Given a group ID such that `ID=X`, return the car the group is traveling
-	// with, or no car if they are still waiting to be served.
+// LocateHandler returns the car the group is traveling
+// with, or no car if they are still waiting to be served.
+func LocateHandler (formatter *render.Render) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 

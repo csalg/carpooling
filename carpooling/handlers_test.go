@@ -11,8 +11,10 @@ import (
 	"encoding/json"
 	"strings"
 	// "reflect"
-
+	"strconv"
 	"github.com/unrolled/render"
+
+	"github.com/csalg/carpooling/models"
 )
 
 // ------------------------------ Variables and factory functions --------------------------------------
@@ -24,7 +26,6 @@ var formatter = render.New(render.Options{
 func dispatch(t *testing.T,
 	client *http.Client,
 	req *http.Request,
-	handler func  (formatter *render.Render) http.HandlerFunc, 
 	method string,
 	expected_status int) {
 	// Sends requests, asserts payload and status code are correct
@@ -42,7 +43,7 @@ func dispatch(t *testing.T,
 	}
 
 	if res.StatusCode != expected_status {
-		t.Errorf("Expected response status %d, received %s", expected_status, res.Status)
+		t.Errorf("Expected response status %d, received %s. Request body: %s", expected_status, res.Status, payload)
 	}
 }
 
@@ -65,7 +66,7 @@ func dispatchJSON (t *testing.T,
 
 	req.Header.Add("Content-Type", "application/json")
 
-	dispatch(t, client, req, handler, method, expected_status)
+	dispatch(t, client, req, method, expected_status)
 	return
 }
 
@@ -78,7 +79,7 @@ func dispatchForm(t *testing.T,
 	method := "POST"
 	client := &http.Client{}
 	server := httptest.NewServer(
-		http.HandlerFunc(dropoffHandler(formatter)))
+		http.HandlerFunc(handler(formatter)))
 	defer server.Close()
 
 	b := strings.NewReader(data.Encode())
@@ -88,7 +89,7 @@ func dispatchForm(t *testing.T,
 
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
-	dispatch(t, client, req, dropoffHandler, method, expected_status)
+	dispatch(t, client, req, method, expected_status)
 	return 
 }
 
@@ -97,105 +98,77 @@ func dispatchForm(t *testing.T,
 
 func TestCars(t *testing.T){
 
-	dispatchJSON(t, carsHandler, "PUT", 400, []byte{})
+	c1, err1 := models.NewCar(1,6)
+	c2, _ := models.NewCar(2,4)
 
-	cars := []Car{
-		{Id:1,
-		Seats:5},
+	if err1 != nil {
+		t.Errorf(err1.Error())
 	}
+
+	cars := []models.Car{*c1,*c2}
+
 	b, err := json.Marshal(cars)
 	if err != nil {  t.Errorf("Error marshalling into json: %v", err) }
-	dispatchJSON(t, carsHandler, "PUT", 200, b)
+	dispatchJSON(t, CarsHandler, "PUT", 200, b)
 
-	cars = []Car{
-		{Id:1,
-		Seats:10},
-		{Id:2,
-		Seats:2},
-	}
-	b, err = json.Marshal(cars)
-	if err != nil {  t.Errorf("Error marshalling into json: %v", err) }
-	dispatchJSON(t, carsHandler, "PUT", 400, b)
+	dispatchJSON(t, CarsHandler, "PUT", 400, []byte{})
 }
 
 
 func TestJourney(t *testing.T){
 
-	dispatchJSON(t, journeyHandler, "POST", 400, []byte{}) // **Body** _required_ A form with the group ID, such that `ID=X`
+	dispatchJSON(t, JourneyHandler, "POST", 400, []byte{}) // **Body** _required_ A form with the group ID, such that `ID=X`
 
-	journey := Journey{ Id:1, People:5 }
+	journey, _ := models.NewJourney(1,5)
 	b, err := json.Marshal(journey)
 	if err != nil {  t.Errorf("Error marshalling into json: %v", err) }
-	dispatchJSON(t, journeyHandler, "POST", 200, b)
+	dispatchJSON(t, JourneyHandler, "POST", 200, b)
 
-	journey = Journey{ Id:2, People:50 }
-	b, err = json.Marshal(journeys)
+	j := models.Journey{Id: 2, Size: 50}
+	b, err = json.Marshal(j)
 	if err != nil {  t.Errorf("Error marshalling into json: %v", err) }
-	dispatchJSON(t, journeyHandler, "POST", 400, b)
+	if err == nil { dispatchJSON(t, JourneyHandler, "POST", 400, b) }
 
 }
 
-func TestDropoff(t *testing.T){
-	// **Body** _required_ A form with the group ID, such that `ID=X`
-	// **Content Type** `application/x-www-form-urlencoded`
-	// Responses:
-	// * **200 OK** or **204 No Content** When the group is unregistered correctly.
-	// * **404 Not Found** When the group is not to be found.
-	// * **400 Bad Request** When there is a failure in the request format or the
-	//   payload can't be unmarshalled.
-
+func TestDropoffAndLocate(t *testing.T){
 	data := url.Values{}
 	data.Set("ID", "10")
-	dispatchForm(t, dropoffHandler, 404, data) // Not found
+	// dispatchForm(t, LocateHandler, 404, data) // Not found
+	dispatchForm(t, DropoffHandler, 404, data) // Not found
 
 	data = url.Values{}
 	data.Set("foo", "bar")
-	dispatchForm(t, dropoffHandler, 400, data) // Bad request
+	dispatchForm(t, DropoffHandler, 400, data) // Bad request
 
 	data = url.Values{}
-	dispatchForm(t, dropoffHandler, 400, data) // Bad request (empty body)
+	dispatchForm(t, DropoffHandler, 400, data) // Bad request (empty body)
 
+	for i := 1; i != 500; i++ {
+		j, _ := models.NewJourney(i, i%5+1)
+		b, err := json.Marshal(j)
+		if err != nil {  t.Errorf("Error marshalling into json: %v", err) }
+		dispatchJSON(t, JourneyHandler, "POST", 200, b)
+	}
 
-	journey := Journey{ Id:50, People:5 }
-	b, err := json.Marshal(journey)
-	if err != nil {  t.Errorf("Error marshalling into json: %v", err) }
-	dispatchJSON(t, journeyHandler, "POST", 200, b)
-	data = url.Values{}
-	data.Set("ID", "50")
-	dispatchForm(t, dropoffHandler, 200, data) // Good request
-
+	for i := 1; i != 500; i++ {
+		data = url.Values{}
+		i_str := strconv.Itoa(i)
+		data.Set("ID", i_str)
+		dispatchForm(t, DropoffHandler, 200, data) // Good request
+	}
 	return 
-
-
-
-
-	
-	// res,err := client.Do(req)
-	// if err != nil {
-	// 	t.Errorf("Error sending %s request: %v", method, err)
-	// }
-
-	// defer res.Body.Close()
-
-	// payload, err := ioutil.ReadAll(res.Body)
-	// if err != nil {
-	// 	t.Errorf("Error reading response body: %v, %s", err, payload)
-	// }
-
-	// if res.StatusCode != expected_status {
-	// 	t.Errorf("Expected response status %d, received %s", expected_status, res.Status)
-	// }
-
 }
 
-func TestLocate(t *testing.T){
-	// **Body** _required_ A url encoded form with the group ID such that `ID=X`
-	// **Content Type** `application/x-www-form-urlencoded`
-	// **Accept** `application/json`
-	// Responses:
-	// * **200 OK** With the car as the payload when the group is assigned to a car.
-	// * **204 No Content** When the group is waiting to be assigned to a car.
-	// * **404 Not Found** When the group is not to be found.
-	// * **400 Bad Request** When there is a failure in the request format or the
-	// payload can't be unmarshalled.
-}
+// func TestLocate(t *testing.T){
+// 	// **Body** _required_ A url encoded form with the group ID such that `ID=X`
+// 	// **Content Type** `application/x-www-form-urlencoded`
+// 	// **Accept** `application/json`
+// 	// Responses:
+// 	// * **200 OK** With the car as the payload when the group is assigned to a car.
+// 	// * **204 No Content** When the group is waiting to be assigned to a car.
+// 	// * **404 Not Found** When the group is not to be found.
+// 	// * **400 Bad Request** When there is a failure in the request format or the
+// 	// payload can't be unmarshalled.
+
+// }
