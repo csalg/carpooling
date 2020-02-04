@@ -3,8 +3,8 @@ package data
 import (
 	"container/list"
 	"errors"
-	"github.com/csalg/carpooling/backing"
-	"github.com/csalg/carpooling/models"
+	"github.com/csalg/carpooling/src/backing"
+	"github.com/csalg/carpooling/src/models"
 	"io"
 	"time"
 )

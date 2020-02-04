@@ -3,7 +3,7 @@ package data
 import (
 	"testing"
 	"fmt"
-	"github.com/csalg/carpooling/models"
+	"github.com/csalg/carpooling/src/models"
 )
 
 func TestJourneyQueueAdd(t *testing.T){

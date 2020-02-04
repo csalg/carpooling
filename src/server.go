@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/codegangsta/negroni"
-	"github.com/csalg/carpooling/api"
+	"github.com/csalg/carpooling/src/api"
 	"github.com/gorilla/mux"
 	"github.com/unrolled/render"
 )

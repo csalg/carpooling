@@ -8,7 +8,7 @@ import (
 	// "io/ioutil"
 	// "reflect"
 	"strconv"
-	"github.com/csalg/carpooling/data"
+	"github.com/csalg/carpooling/src/data"
 	// "github.com/csalg/carpooling/models"
 )
 

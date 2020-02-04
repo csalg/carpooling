@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 	// "fmt"
-	"github.com/csalg/carpooling/models"
+	"github.com/csalg/carpooling/src/models"
 )
 
 func TestCarQueueAdd(t *testing.T){

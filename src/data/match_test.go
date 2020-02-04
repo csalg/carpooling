@@ -2,7 +2,7 @@ package data
 
 import (
 	"testing"
-	"github.com/csalg/carpooling/models"
+	"github.com/csalg/carpooling/src/models"
 	// "fmt"
 )
 

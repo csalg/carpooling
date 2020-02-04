@@ -14,7 +14,7 @@ import (
 	// "reflect"
 	"strconv"
 
-	"github.com/csalg/carpooling/models"
+	"github.com/csalg/carpooling/src/models"
 )
 
 // ------------------------------ Variables and factory functions --------------------------------------
