@@ -14,7 +14,7 @@ The tradeoff is that iterating through its elements would be painfully slow
 (no locality of reference in linked lists).
 */
 
-package queues
+package data
 
 import (
 	"container/list"

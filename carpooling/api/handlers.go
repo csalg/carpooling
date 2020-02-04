@@ -8,15 +8,17 @@ import (
 	// "io/ioutil"
 	// "reflect"
 	"strconv"
-	"github.com/csalg/carpooling/queues"
+	"github.com/csalg/carpooling/data"
 	// "github.com/csalg/carpooling/models"
 )
 
 // TO DO:
 // * Move a bunch of logic further downstream to the queues and models
 
-var cq = queues.NewCarQueue()
-var jq = queues.NewJourneyQueue()
+var cq = data.NewCarQueue()
+var jq = data.NewJourneyQueue()
+
+//var q := data.NewCarAndJourneysQueue()
 
 // CarsHandler loads the list of available cars in the service 
 // and removes all previous data (existing journeys and cars).
@@ -27,13 +29,19 @@ func CarsHandler (formatter *render.Render) http.HandlerFunc {
 		switch r.Method {
 		case "PUT":
 
+			// err := models.ValidateJsonCars(r.Body)
+			// if err...
+			// q.ResetCars()
+			// q.AddCarsFromJsonRequest()
+			// q.ResetJourneys()
+
 			err := cq.MakeFromJsonRequest(r.Body)
 			if err != nil {
 				http.Error(w, err.Error(), 400)
 				return
 			}
 
-			jq = queues.NewJourneyQueue()
+			jq = data.NewJourneyQueue()
 			formatter.JSON(w,http.StatusOK,"Cars updated successfully")
 			return
 
@@ -53,6 +61,11 @@ func JourneyHandler (formatter *render.Render) http.HandlerFunc {
 
 		case "POST":
 
+			// err := models.ValidateJsonJourney(r.Body)
+			// if err...
+			//jq.AddFromJsonRequest(r.Body)
+
+
 			err := jq.AddFromJsonRequest(r.Body)
 
 			if err != nil {
@@ -60,7 +73,7 @@ func JourneyHandler (formatter *render.Render) http.HandlerFunc {
 				return
 			}
 
-			queues.Match(cq,jq)
+			data.Match(cq,jq)
 			formatter.JSON(w,200,"Successfully posted")
 			return
 		default:
@@ -101,7 +114,8 @@ func DropoffHandler (formatter *render.Render) http.HandlerFunc {
 				return
 			}
 
-			err = queues.Dropoff(cq, jq, id)
+			err = data.Dropoff(cq, jq, id)
+			//q.Dropoff(id)
 			if err != nil { http.Error(w,err.Error(), 400) }
 			return
 			

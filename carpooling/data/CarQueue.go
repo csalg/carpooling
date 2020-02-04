@@ -32,6 +32,7 @@ func (q *carQueue) Move(el *list.Element, new_seats_available int) error {
 	return err
 }
 
+
 // MakeFromJsonRequest first calls the BodyToCars decoder and
 // if that succeeds overwrites the CarQueue with the new ones.
 func (q *carQueue) MakeFromJsonRequest(b io.ReadCloser)error{
