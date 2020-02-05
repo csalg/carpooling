@@ -9,7 +9,7 @@ import (
 	"github.com/csalg/carpooling/src/backing"
 	"github.com/csalg/carpooling/src/models"
 	"io"
-	// "fmt"
+	"fmt"
 )
 
 type carQueue struct {
@@ -20,9 +20,9 @@ type carQueue struct {
 // to prevent the client from not initializing the map and getting nil
 // pointer errors
 func NewCarQueue()*carQueue {
-	jq := new(carQueue)
-	jq.ById = make(map[int]*list.Element)
-	return jq
+	q := new(carQueue)
+	q.ById = make(map[int]*list.Element)
+	return q
 }
 
 // This is just sugar for changeSize.
@@ -40,11 +40,12 @@ func (q *carQueue) MakeFromJsonRequest(b io.ReadCloser)error{
 
 	cars, err := models.BodyToCars(b)
 	if err != nil { return err }
-	q = NewCarQueue()
+	*q = *NewCarQueue()
 
 	for _, car := range *cars {
 		q.Add(&car)
 	}
+	fmt.Println("[MakeFromJsonRequest] MostAvailableSeats: ", q.MostAvailableSeats())
 
 	return nil
 }

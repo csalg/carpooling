@@ -34,15 +34,15 @@ func (j *Journey) GetTimestamp()int64 {
 	return j.timestamp
 }
 
-func (j Journey)  GetId() int	 { return j.Id }
+func (j *Journey)  GetId() int	 { return j.Id }
 
-func (j Journey) GetSize() int { return j.Size }
+func (j *Journey) GetSize() int { return j.Size }
 
-func (j Journey) SetSize(val int) error { return nil }
+func (j *Journey) SetSize(val int) error { return nil }
 
-func (j Journey) IsTravelling() bool { return j.isTravelling }
+func (j *Journey) IsTravelling() bool { return j.isTravelling }
 
-func (j Journey) AssignCar(id int) { 
+func (j *Journey) AssignCar(id int) { 
 	j.Car = id
 	j.isTravelling = true
  }

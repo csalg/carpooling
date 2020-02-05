@@ -155,20 +155,8 @@ func TestDropoffAndLocate(t *testing.T){
 		data = url.Values{}
 		i_str := strconv.Itoa(i)
 		data.Set("ID", i_str)
+		dispatchForm(t, LocateHandler, 204, data) // Good request
 		dispatchForm(t, DropoffHandler, 200, data) // Good request
 	}
 	return 
 }
-
-// func TestLocate(t *testing.T){
-// 	// **Body** _required_ A url encoded form with the group ID such that `ID=X`
-// 	// **Content Type** `application/x-www-form-urlencoded`
-// 	// **Accept** `application/json`
-// 	// Responses:
-// 	// * **200 OK** With the car as the payload when the group is assigned to a car.
-// 	// * **204 No Content** When the group is waiting to be assigned to a car.
-// 	// * **404 Not Found** When the group is not to be found.
-// 	// * **400 Bad Request** When there is a failure in the request format or the
-// 	// payload can't be unmarshalled.
-
-// }

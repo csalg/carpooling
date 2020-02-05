@@ -28,6 +28,7 @@ func printRequest(r *http.Request){
 func StatusHandler (formatter *render.Render) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		// printRequest(r)
 		switch r.Method{
 
 		case "GET":
@@ -47,6 +48,8 @@ func StatusHandler (formatter *render.Render) http.HandlerFunc {
 // of the service.
 func CarsHandler (formatter *render.Render) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// printRequest(r)
+
 		if 	r.Header.Get("Content-type") == "application/json" &&
 			r.Method == "PUT" {
 			err := cq.MakeFromJsonRequest(r.Body)
@@ -69,6 +72,8 @@ func CarsHandler (formatter *render.Render) http.HandlerFunc {
 // looking for rides on the system
 func JourneyHandler (formatter *render.Render) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// printRequest(r)
+
 		if 	r.Header.Get("Content-type") == "application/json" &&
 			r.Method == "POST" {
 
@@ -80,7 +85,6 @@ func JourneyHandler (formatter *render.Render) http.HandlerFunc {
 			}
 
 			data.Match(cq,jq)
-			// formatter.JSON(w,200,"")
 			return
 		} else {
 			http.Error(w, "Not implemented!", 400)
@@ -99,6 +103,8 @@ func JourneyHandler (formatter *render.Render) http.HandlerFunc {
 //   payload can't be unmarshalled.
 func DropoffHandler (formatter *render.Render) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// printRequest(r)
+
 		if 	r.Header.Get("Content-type") == "application/x-www-form-urlencoded" &&
 			r.Method == "POST" {
 			r.ParseForm()
@@ -119,6 +125,7 @@ func DropoffHandler (formatter *render.Render) http.HandlerFunc {
 			}
 
 			// err = data.Dropoff(cq, jq, id)
+			formatter.JSON(w,204,"")
 			if err != nil { http.Error(w,err.Error(), 400) }
 		} else {
 			http.Error(w, "Not implemented", 400)
@@ -131,6 +138,8 @@ func DropoffHandler (formatter *render.Render) http.HandlerFunc {
 // with, or no car if they are still waiting to be served.
 func LocateHandler (formatter *render.Render) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// printRequest(r)
+
 		if 	r.Header.Get("Content-type") == "application/x-www-form-urlencoded" &&
 			r.Method == "POST" {
 
@@ -161,7 +170,8 @@ func LocateHandler (formatter *render.Render) http.HandlerFunc {
 				formatter.JSON(w,204,"")
 				return
 			} else {
-				formatter.JSON(w,200,journey.Car)
+				cid := int(journey.Car)
+				formatter.JSON(w,200,map[string]int{"Car": cid})
 				return
 			}
 

@@ -3,7 +3,6 @@ package data
 import (
 	"testing"
 	"github.com/csalg/carpooling/src/models"
-	// "fmt"
 )
 
 func TestMatch(t *testing.T){
@@ -19,6 +18,10 @@ func TestMatch(t *testing.T){
 
 	err := Match(cq,jq)
 	if err != nil {t.Errorf(err.Error())}
+	_, j, err := jq.GetById(1)
+	if j.Car != 1 {
+		t.Errorf("Car was not asigned properly. Expected 1, got %d", j.Car)
+	}
 
 	err = Match(cq,jq)
 	if err != nil {t.Errorf(err.Error())}

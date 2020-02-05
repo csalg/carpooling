@@ -7,6 +7,7 @@ import (
 	"github.com/csalg/carpooling/src/models"
 	"io"
 	"time"
+	"fmt"
 )
 
 type JourneyQueue struct {
@@ -57,6 +58,7 @@ func (q *JourneyQueue) AddFromJsonRequest(b io.ReadCloser) error {
 func (jq *JourneyQueue) AssignCar(journey_element *list.Element, journey *models.Journey, cid int){
 	journey.AssignCar(cid)
 	jq.BySize[journey.GetSize()].Remove(journey_element)
+	fmt.Println("Car was assigned: ", journey.Car)
 }
 
 func (q *JourneyQueue ) GetById(id int) (*list.Element, *models.Journey, error){

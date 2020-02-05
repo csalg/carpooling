@@ -2,6 +2,7 @@ package data
 
 import (
 	"errors"
+	"fmt"
 )
 
 // Match all possible journeys to available cars in 
@@ -9,6 +10,7 @@ import (
 func Match(cq *carQueue, jq *JourneyQueue) error {
 
 		mostAvailableSeats := cq.MostAvailableSeats()
+		fmt.Println("mostAvailableSeats: ", mostAvailableSeats)
 		if mostAvailableSeats == 0 { 
 			return errors.New("No more cars available") 
 		}
