@@ -4,16 +4,26 @@ import (
 	"net/http"
 	"github.com/unrolled/render"
 	// "encoding/json"
-	// "fmt"
+	"fmt"
 	// "io/ioutil"
 	// "reflect"
 	"strconv"
 	"github.com/csalg/carpooling/src/data"
 	// "github.com/csalg/carpooling/models"
+	"net/http/httputil"
 )
 
 var cq = data.NewCarQueue()
 var jq = data.NewJourneyQueue()
+
+func printRequest(r *http.Request){
+	requestDump, err := httputil.DumpRequest(r, true)
+	if err != nil {
+		fmt.Println(err)
+	  }
+	  fmt.Println(string(requestDump))
+
+}
 
 func StatusHandler (formatter *render.Render) http.HandlerFunc {
 
@@ -37,9 +47,8 @@ func StatusHandler (formatter *render.Render) http.HandlerFunc {
 // of the service.
 func CarsHandler (formatter *render.Render) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case "PUT":
-
+		if 	r.Header.Get("Content-type") == "application/json" &&
+			r.Method == "PUT" {
 			err := cq.MakeFromJsonRequest(r.Body)
 			if err != nil {
 				http.Error(w, err.Error(), 400)
@@ -49,9 +58,8 @@ func CarsHandler (formatter *render.Render) http.HandlerFunc {
 			jq = data.NewJourneyQueue()
 			formatter.JSON(w,http.StatusOK,"Cars updated successfully")
 			return
-
-		default:
-			http.Error(w, "Wrong method", 400)
+		} else {
+			http.Error(w, "Wrong request format", 400)
 			return
 		}
 	}
@@ -60,11 +68,9 @@ func CarsHandler (formatter *render.Render) http.HandlerFunc {
 // JourneyHandler registers individual groups of people 
 // looking for rides on the system
 func JourneyHandler (formatter *render.Render) http.HandlerFunc {
-
 	return func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method{
-
-		case "POST":
+		if 	r.Header.Get("Content-type") == "application/json" &&
+			r.Method == "POST" {
 
 			err := jq.AddFromJsonRequest(r.Body)
 
@@ -74,13 +80,13 @@ func JourneyHandler (formatter *render.Render) http.HandlerFunc {
 			}
 
 			data.Match(cq,jq)
-			formatter.JSON(w,200,"Successfully posted")
+			// formatter.JSON(w,200,"")
 			return
-		default:
+		} else {
 			http.Error(w, "Not implemented!", 400)
+		}
 		return
 	}
-}
 }
 
 // DropoffHandler deletes journeys from the system. Specs: 
@@ -93,9 +99,40 @@ func JourneyHandler (formatter *render.Render) http.HandlerFunc {
 //   payload can't be unmarshalled.
 func DropoffHandler (formatter *render.Render) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method{
+		if 	r.Header.Get("Content-type") == "application/x-www-form-urlencoded" &&
+			r.Method == "POST" {
+			r.ParseForm()
+			if len(r.Form["ID"]) == 0 {
+				http.Error(w, "Error parsing ID", 400)
+				return
+			}
 
-		case "POST":
+			id, err := strconv.Atoi(r.Form["ID"][0])
+			if err != nil {
+				http.Error(w, "Not an integer: " + strconv.Itoa(id),  400)
+				return
+			}
+
+			if !jq.Has(id){
+				http.Error(w,"Not found", 404)
+				return
+			}
+
+			// err = data.Dropoff(cq, jq, id)
+			if err != nil { http.Error(w,err.Error(), 400) }
+		} else {
+			http.Error(w, "Not implemented", 400)
+		}
+		return
+	}
+}
+
+// LocateHandler returns the car the group is traveling
+// with, or no car if they are still waiting to be served.
+func LocateHandler (formatter *render.Render) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if 	r.Header.Get("Content-type") == "application/x-www-form-urlencoded" &&
+			r.Method == "POST" {
 
 			r.ParseForm()
 			if len(r.Form["ID"]) == 0 {
@@ -114,25 +151,23 @@ func DropoffHandler (formatter *render.Render) http.HandlerFunc {
 				return
 			}
 
-			err = data.Dropoff(cq, jq, id)
-			//q.Dropoff(id)
-			if err != nil { http.Error(w,err.Error(), 400) }
-			return
-			
-		default:
-			http.Error(w, "Not implemented", 400)
-			return
+			_, journey, err := jq.GetById(id)
+			if err != nil {
+				http.Error(w,err.Error(), 400)
+				return
+			}
+
+			if !journey.IsTravelling(){
+				formatter.JSON(w,204,"")
+				return
+			} else {
+				formatter.JSON(w,200,journey.Car)
+				return
+			}
+
+		} else {
+			http.Error(w, "Not implemented!", 400)
 		}
-	}
-}
-
-// LocateHandler returns the car the group is traveling
-// with, or no car if they are still waiting to be served.
-func LocateHandler (formatter *render.Render) http.HandlerFunc {
-
-	return func(w http.ResponseWriter, r *http.Request) {
-
-		http.Error(w, "Not implemented!", 400)
-		return
+			return
 	}
 }

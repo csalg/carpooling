@@ -134,7 +134,7 @@ func TestJourney(t *testing.T){
 func TestDropoffAndLocate(t *testing.T){
 	data := url.Values{}
 	data.Set("ID", "10")
-	// dispatchForm(t, LocateHandler, 404, data) // Not found
+	dispatchForm(t, LocateHandler, 404, data) // Not found
 	dispatchForm(t, DropoffHandler, 404, data) // Not found
 
 	data = url.Values{}
