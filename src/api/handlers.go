@@ -15,6 +15,22 @@ import (
 var cq = data.NewCarQueue()
 var jq = data.NewJourneyQueue()
 
+func StatusHandler (formatter *render.Render) http.HandlerFunc {
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method{
+
+		case "GET":
+			formatter.JSON(w,200,"Service running successfully")
+			return
+		default:
+			http.Error(w, "Not implemented!", 400)
+		return
+	}
+}
+}
+
+
 // CarsHandler loads the list of available cars in the service 
 // and removes all previous data (existing journeys and cars).
 // This method may be called more than once during the life cycle 
