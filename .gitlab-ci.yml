@@ -1,8 +1,8 @@
 ---
 stages:
-  - build
+#  - build
   - docker
-  - acceptance
+#  - acceptance
 
 #remove_me:
 #  stage: build
