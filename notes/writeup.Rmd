@@ -9,7 +9,7 @@ The goal of this short text is to explain some of my design ideas.
 
 ## Code structure and organization
 
-The design achieves a clean architecture with separation of concerns through a classic layered approach. The layers are as follows:
+The design achieves a clean architecture with separation of concerns through a classic layered approach (illustrated in Fig. 1). The layers are as follows:
 
 * The \texttt{main} layer is the entry point of the application and wraps the other layers.
 * The \texttt{api} layer contains the handlers for the api endpoints. Because both the api and business logic in this case are very simple (just a few lines per handler), I have chosen to keep them coupled under the same package. A larger API with more endpoints or more sophisticated business logic would justify splitting this layer into two (api & business layers).
@@ -17,9 +17,11 @@ The design achieves a clean architecture with separation of concerns through a c
 * The \texttt{data} layer provides an interface which is consumed by the \texttt{api} layer. It is best practice to segregate data access operations and business logic for several well-known reasons (data operations are bug-prone and benefit from extensive unit testing, business logic changes more often than data access procedures, etc.)
 * The \texttt{backing} layer simulates a queue-based backing system such as Redis or RabbitMQ. An important part of designing cloud-native applications is that processes should be stateless (e.g. Factor 6 of the 12-Factor App). The Readme file is clear on the preference for this project to be self-contained, so I am just rolling my own queue-based backing service as its own layer. 
 
+![A diagram of the architecture of the ridesharing API](./img/architecture.jpg){width=50%}
+
 ## Time complexity of the match procedure
 
-The backing layer is a very efficient queue that can easily handle Cabify-scale levels of users. It contains a single data structure, which I have named  \texttt{HashQueue}, owing to the fact that it is both a queue and a hashmap, which is designed to index objects with a size and an id. It wraps both an array of queues (\texttt{BySize}) and a hashmap (\texttt{ById}). The following operations are supported in constant time:
+The backing layer is a very efficient queue that can easily handle Cabify-scale levels of users. It contains a single data structure, which I have named  \texttt{HashQueue}, owing to the fact that it is both a queue and a hashmap, which is designed to index objects with a size and an id. It wraps both an array of queues (\texttt{BySize}) and a hashmap (\texttt{ById}) (see Fig. 2 for an illustration). The following operations are supported in constant time:
 
 - Create / Read / Update / Delete an object.
 - Change the size of an object.
@@ -27,6 +29,8 @@ The backing layer is a very efficient queue that can easily handle Cabify-scale 
 - Find the oldest or newest object with size within a certain interval.
 
 This structure is then specialized into a \texttt{CarQueue} and a \texttt{JourneyQueue} in the \texttt{data} layer. The \texttt{Match} procedure can then match journeys to cars in $O(m)$ time, where $m$ is the number of feasible journeys (according to the instructions in the Readme, a journey is feasible is it can both fit in an available car and there isn't an older journey which could fit in a car).
+
+![An illustration of the HashQueue data structure. The BySize array contains the head of several queues, allowing efficient retrieval by size. A hashmap then maps ids to pointers allowing efficient CRUD operations by ID.](./img/data_structure.jpg){width=50%}
 
 _Remark: There are better algorithms for this problem which would increase occupancy rates (online knapsack, or iterated local search would probably give better results) while maintaining the constraint that older journeys should be assigned first._
 
