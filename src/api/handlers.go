@@ -1,36 +1,43 @@
 package api
 
 import (
+	//"fmt"
+	"log"
 	"net/http"
 	"github.com/unrolled/render"
+	"net/http/httputil"
+
 	// "encoding/json"
-	"fmt"
+	//_:="fmt"
 	// "io/ioutil"
 	// "reflect"
 	"strconv"
 	"github.com/csalg/carpooling/src/data"
 	// "github.com/csalg/carpooling/models"
-	"net/http/httputil"
+	//_:="net/http/httputil"
 )
 
 var carQueue = data.NewCarQueue()
 var journeyQueue = data.NewJourneyQueue()
 
+
+var requestCounter = 0
 // printRequest is a helper used for debugging
 func printRequest(request *http.Request){
 	requestDump, err := httputil.DumpRequest(request, true)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	  }
-	  fmt.Println(string(requestDump))
-
+	log.Println("\n---------------------------- # " + strconv.Itoa(requestCounter) + " # ----------------------------\n" )
+	log.Println(string(requestDump))
+	requestCounter++
 }
 
 // StatusHandler responds with a 200 OK when it handles a GET request
 func StatusHandler (formatter *render.Render) http.HandlerFunc {
 
 	return func(responseWriter http.ResponseWriter, request *http.Request) {
-		// printRequest(request)
+		printRequest(request)
 		switch request.Method{
 
 		case "GET":
@@ -50,7 +57,7 @@ func StatusHandler (formatter *render.Render) http.HandlerFunc {
 // of the service.
 func CarsHandler (formatter *render.Render) http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, request *http.Request) {
-		// printRequest(request)
+		printRequest(request)
 
 		if 	request.Header.Get("Content-type") == "application/json" &&
 			request.Method == "PUT" {
@@ -74,7 +81,7 @@ func CarsHandler (formatter *render.Render) http.HandlerFunc {
 // looking for rides on the system
 func JourneyHandler (formatter *render.Render) http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, request *http.Request) {
-		// printRequest(request)
+		printRequest(request)
 
 		if 	request.Header.Get("Content-type") == "application/json" &&
 			request.Method == "POST" {
@@ -87,6 +94,7 @@ func JourneyHandler (formatter *render.Render) http.HandlerFunc {
 			}
 
 			data.Match(carQueue, journeyQueue)
+			responseWriter.WriteHeader(http.StatusOK)
 			return
 		} else {
 			http.Error(responseWriter, "Not implemented!", 400)
@@ -105,7 +113,7 @@ func JourneyHandler (formatter *render.Render) http.HandlerFunc {
 //   payload can't be unmarshalled.
 func DropoffHandler (formatter *render.Render) http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, request *http.Request) {
-		// printRequest(request)
+		printRequest(request)
 
 		if  request.Header.Get("Content-type") == "application/x-www-form-urlencoded" &&
 			request.Method == "POST" {
@@ -125,10 +133,14 @@ func DropoffHandler (formatter *render.Render) http.HandlerFunc {
 				http.Error(responseWriter,"Not found", 404)
 				return
 			}
-			// Business logic is omitted only to make acceptance stage pass.
-			// err = data.Dropoff(carQueue, journeyQueue, id)
+			err = data.Dropoff(carQueue, journeyQueue, id)
+			if err != nil {
+				http.Error(responseWriter,err.Error(), 400)
+				return
+			}
 			formatter.JSON(responseWriter,204,"")
-			if err != nil { http.Error(responseWriter,err.Error(), 400) }
+			return
+
 		} else {
 			http.Error(responseWriter, "Not implemented", 400)
 		}
@@ -140,7 +152,7 @@ func DropoffHandler (formatter *render.Render) http.HandlerFunc {
 // with, or no car if they are still waiting to be served.
 func LocateHandler (formatter *render.Render) http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, request *http.Request) {
-		// printRequest(request)
+		printRequest(request)
 
 		if 	request.Header.Get("Content-type") == "application/x-www-form-urlencoded" &&
 			request.Method == "POST" {
@@ -158,7 +170,9 @@ func LocateHandler (formatter *render.Render) http.HandlerFunc {
 			}
 
 			if !journeyQueue.Has(id){
-				http.Error(responseWriter,"Not found", 404)
+				responseWriter.WriteHeader(http.StatusNotFound)
+
+				//http.Error(responseWriter,"Not found!", 404)
 				return
 			}
 
@@ -172,8 +186,12 @@ func LocateHandler (formatter *render.Render) http.HandlerFunc {
 				formatter.JSON(responseWriter,204,"")
 				return
 			} else {
-				carId := int(journey.Car)
-				formatter.JSON(responseWriter,200,map[string]int{"Car": carId})
+				carJson, err := carQueue.GetCarJsonById(journey.Car)
+				if err != nil {
+					http.Error(responseWriter, "Error retrieving car", 400)
+					return
+				}
+				formatter.JSON(responseWriter,200,carJson)
 				return
 			}
 

@@ -11,7 +11,8 @@ import (
 func NewServer() *negroni.Negroni {
 
 	formatter := render.New(render.Options{
-		IndentJSON: true,
+		IndentJSON: false,
+		DisableCharset: true,
 	})
 
 	n := negroni.Classic()

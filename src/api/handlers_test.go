@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/unrolled/render"
+	"strconv"
+
 	// "fmt"
 	"io/ioutil"
 	"net/http"
@@ -11,8 +13,6 @@ import (
 	"net/url"
 	"strings"
 	"testing"
-	// "reflect"
-	//"strconv"
 
 	"github.com/csalg/carpooling/src/models"
 )
@@ -130,33 +130,52 @@ func TestJourney(t *testing.T){
 	if err == nil { dispatchJSON(t, JourneyHandler, "POST", 400, b) }
 
 }
-//
-//func TestDropoffAndLocate(t *testing.T){
-//	data := url.Values{}
-//	data.Set("ID", "10")
-//	dispatchForm(t, LocateHandler, 404, data) // Not found
-//	dispatchForm(t, DropoffHandler, 404, data) // Not found
-//
-//	data = url.Values{}
-//	data.Set("foo", "bar")
-//	dispatchForm(t, DropoffHandler, 400, data) // Bad request
-//
-//	data = url.Values{}
-//	dispatchForm(t, DropoffHandler, 400, data) // Bad request (empty body)
-//
-//	for i := 1; i != 500; i++ {
-//		j, _ := models.NewJourney(i, i%5+1)
-//		b, err := json.Marshal(j)
-//		if err != nil {  t.Errorf("Error marshalling into json: %v", err) }
-//		dispatchJSON(t, JourneyHandler, "POST", 200, b)
-//	}
-//
-//	for i := 1; i != 500; i++ {
-//		data = url.Values{}
-//		i_str := strconv.Itoa(i)
-//		data.Set("ID", i_str)
-//		dispatchForm(t, LocateHandler, 204, data) // Good request
-//		dispatchForm(t, DropoffHandler, 200, data) // Good request
-//	}
-//	return
-//}
+
+func TestDropoffAndLocate(t *testing.T){
+	data := url.Values{}
+	data.Set("ID", "10")
+	dispatchForm(t, LocateHandler, 404, data) // Not found
+	dispatchForm(t, DropoffHandler, 404, data) // Not found
+
+	data = url.Values{}
+	data.Set("foo", "bar")
+	dispatchForm(t, DropoffHandler, 400, data) // Bad request
+
+	data = url.Values{}
+	dispatchForm(t, DropoffHandler, 400, data) // Bad request (empty body)
+
+	//Let's add 500 users
+	for i := 1; i != 501; i++ {
+		j, _ := models.NewJourney(i, i%5+1)
+		b, err := json.Marshal(j)
+		if err != nil {  t.Errorf("Error marshalling into json: %v", err) }
+		dispatchJSON(t, JourneyHandler, "POST", 200, b)
+	}
+
+	//Let's first test that the locate handler returns that they are waiting to be assigned, then
+	//not found after dropoff
+	for i := 1; i != 401; i++ {
+		data = url.Values{}
+		i_str := strconv.Itoa(i)
+		data.Set("ID", i_str)
+		dispatchForm(t, LocateHandler, 204, data)
+		dispatchForm(t, DropoffHandler, 204, data)
+		dispatchForm(t, LocateHandler, 404, data)
+
+	}
+	//
+	////Now let's add a bunch of cars so that everyone is assigned and confirm that they are assigned
+	//for i := 1; i != 100; i++ {
+	//	models.NewCar(i,6)
+	//
+	//}
+	//
+	////All of those previous passengers should have been assigned.
+	//for i := 400; i != 501; i++ {
+	//	data = url.Values{}
+	//	i_str := strconv.Itoa(i)
+	//	data.Set("ID", i_str)
+	//	dispatchForm(t, LocateHandler, 200, data) // Good request
+	//}
+		return
+}

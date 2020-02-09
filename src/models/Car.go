@@ -43,15 +43,19 @@ func (car *Car) SetSeatsAvailable (val int) error{
 
 // Serialization
 
-type carJSON struct {
+type CarJson struct {
 	Id int `json:"id"`
 	Seats int `json:"seats"`
+}
+
+func NewCarJson(id, seats int) *CarJson {
+	return &CarJson{id,seats}
 }
 
 // BodyToCars deserializes from a json request to []Car
 func BodyToCars(body io.ReadCloser) (*[]Car, error) {
 
-	var tempCarsArray []carJSON;
+	var tempCarsArray []CarJson;
 	var carsArray []Car
 	err := json.NewDecoder(body).Decode(&tempCarsArray)
 	if err != nil { return nil, err }
@@ -63,4 +67,8 @@ func BodyToCars(body io.ReadCloser) (*[]Car, error) {
 	}
 
 	return &carsArray, nil
+}
+
+func (car *Car) ToCarJson() *CarJson {
+	return NewCarJson(car.Id, car.Seats)
 }

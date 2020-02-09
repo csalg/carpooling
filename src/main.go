@@ -7,6 +7,7 @@ import (
 	"os"
 )
 
+
 func main() {
 	port := os.Getenv("PORT")
 	if len(port) == 0 { 
@@ -15,5 +16,6 @@ func main() {
 
 	server := NewServer()
 	server.Run(":"+port)
+	//http.ListenAndServe("0.0.0.0:"+port, server)
 
 }

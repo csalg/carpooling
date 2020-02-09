@@ -9,7 +9,6 @@ import (
 	"github.com/csalg/carpooling/src/backing"
 	"github.com/csalg/carpooling/src/models"
 	"io"
-	"fmt"
 )
 
 type carQueueType struct {
@@ -45,7 +44,6 @@ func (carQueue *carQueueType) MakeFromJsonRequest(b io.ReadCloser)error{
 	for _, car := range *carsArray {
 		carQueue.Add(&car)
 	}
-	fmt.Println("[MakeFromJsonRequest] MostAvailableSeats: ", carQueue.MostAvailableSeats())
 
 	return nil
 }
@@ -78,4 +76,12 @@ func (carQueue *carQueueType) GetById(id int) (*list.Element, *models.Car, error
 		return nil, nil, errors.New("Not found")
 	}
 	return element, element.Value.(*models.Car), nil
+}
+
+func (carQueue *carQueueType) GetCarJsonById(id int) (*models.CarJson, error){
+	_, car, err := carQueue.GetById(id)
+	if err != nil {
+		return nil, err
+	}
+	return car.ToCarJson(), nil
 }
