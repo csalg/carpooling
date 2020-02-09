@@ -23,21 +23,21 @@ func NewCar(id int, seats int) (*Car, error) {
 }
 
 
-func (c Car)  GetId() int	 { return c.Id }
+func (car Car)  GetId() int { return car.Id }
 
 
-func (c Car) GetSize() int { return c.seatsAvailable }
+func (car Car) GetSize() int { return car.seatsAvailable }
 
 
-func (c Car) SetSize(val int) error { 
-	return 	c.SetSeatsAvailable(val)
+func (car Car) SetSize(val int) error {
+	return 	car.SetSeatsAvailable(val)
 }
 
-func (c *Car) SetSeatsAvailable (val int) error{
+func (car *Car) SetSeatsAvailable (val int) error{
 	if val < 0 || val > 6 {
 		return errors.New("Cars are required to have 0 to 6 available seats.")
 	}	
-	c.seatsAvailable = val
+	car.seatsAvailable = val
 	return nil
 }
 
@@ -49,18 +49,18 @@ type carJSON struct {
 }
 
 // BodyToCars deserializes from a json request to []Car
-func BodyToCars(b io.ReadCloser) (*[]Car, error) {
+func BodyToCars(body io.ReadCloser) (*[]Car, error) {
 
-	var cars_temp []carJSON;
-	var cars []Car
-	err := json.NewDecoder(b).Decode(&cars_temp)
+	var tempCarsArray []carJSON;
+	var carsArray []Car
+	err := json.NewDecoder(body).Decode(&tempCarsArray)
 	if err != nil { return nil, err }
 
-	for _, c := range cars_temp {
-		car, err := NewCar(c.Id, c.Seats)
+	for _, car := range tempCarsArray {
+		car, err := NewCar(car.Id, car.Seats)
 		if err != nil { return nil, err }
-		cars = append(cars, *car)
+		carsArray = append(carsArray, *car)
 	}
 
-	return &cars, nil
+	return &carsArray, nil
 }

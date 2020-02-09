@@ -19,32 +19,40 @@ func NewJourney(id int, size int) (*Journey, error) {
 	if size > 6 || size < 1 {
 		return nil, errors.New(fmt.Sprintf("Number of people must be between 1 and 6. Got %d", size))
 	}
-	j := new(Journey)
-	j.Id = id
-	j.Size = size
-	j.SetTimestamp()
-	return j, nil
+	journey := new(Journey)
+	journey.Id = id
+	journey.Size = size
+	journey.SetTimestamp()
+	return journey, nil
 }
 
-func (j *Journey) SetTimestamp(){
-	j.timestamp = time.Now().UnixNano()
+func (journey *Journey) SetTimestamp(){
+	journey.timestamp = time.Now().UnixNano()
 }
 
-func (j *Journey) GetTimestamp()int64 {
-	return j.timestamp
+func (journey *Journey) GetTimestamp()int64 {
+	return journey.timestamp
 }
 
-func (j *Journey)  GetId() int	 { return j.Id }
+func (journey *Journey)  GetId() int {
+	return journey.Id
+}
 
-func (j *Journey) GetSize() int { return j.Size }
+func (journey *Journey) GetSize() int {
+	return journey.Size
+}
 
-func (j *Journey) SetSize(val int) error { return nil }
+func (journey *Journey) SetSize(val int) error {
+	return errors.New("Journey size can only be set during construction.")
+}
 
-func (j *Journey) IsTravelling() bool { return j.isTravelling }
+func (journey *Journey) IsTravelling() bool {
+	return journey.isTravelling
+}
 
-func (j *Journey) AssignCar(id int) { 
-	j.Car = id
-	j.isTravelling = true
+func (journey *Journey) AssignCar(id int) {
+	journey.Car = id
+	journey.isTravelling = true
  }
 
 type journeyJSON struct {
@@ -52,15 +60,15 @@ type journeyJSON struct {
 	People int `json:"people"`
 }
 
-func NewJourneyFromBody(b io.ReadCloser) (*Journey, error) {
-	var jTemp journeyJSON
-	var j *Journey
+func NewJourneyFromBody(body io.ReadCloser) (*Journey, error) {
+	var jsonJourney journeyJSON
+	var journey *Journey
 
-	err := json.NewDecoder(b).Decode(&jTemp)
+	err := json.NewDecoder(body).Decode(&jsonJourney)
 	if err != nil { return nil, err }
 
-	j, err = NewJourney(jTemp.Id, jTemp.People)
+	journey, err = NewJourney(jsonJourney.Id, jsonJourney.People)
 	if err != nil { return nil, err }
 
-	return j, nil
+	return journey, nil
 }

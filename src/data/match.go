@@ -2,16 +2,14 @@ package data
 
 import (
 	"errors"
-	"fmt"
 )
 
 // Match all possible journeys to available cars in 
 // journey arrival order
-func Match(cq *carQueue, jq *JourneyQueue) error {
+func Match(cq *carQueueType, jq *journeyQueueType) error {
 
 		mostAvailableSeats := cq.MostAvailableSeats()
-		fmt.Println("mostAvailableSeats: ", mostAvailableSeats)
-		if mostAvailableSeats == 0 { 
+		if mostAvailableSeats == 0 {
 			return errors.New("No more cars available") 
 		}
 
@@ -25,33 +23,33 @@ func Match(cq *carQueue, jq *JourneyQueue) error {
 			return err
 			}	
 
-		cid := car.GetId()
+		carId := car.GetId()
 		err  = cq.Move(carElement, car.GetSize() - journey.GetSize())
 		if err != nil { 
 			return err
 		}
 		
-		jq.AssignCar(journeyElement, journey, cid)
+		jq.AssignCar(journeyElement, journey, carId)
 	return nil
 }
 
 // Dropoff removes a journey from the queue and updates the car's
 // capacity accordingly if it was travelling.
-func Dropoff(cq *carQueue, jq *JourneyQueue, jid int) error {
-	defer jq.Delete(jid)
+func Dropoff(carQ *carQueueType, journeyQueue *journeyQueueType, jid int) error {
+	defer journeyQueue.Delete(jid)
 
-	_, journey, err := jq.GetById(jid)
+	_, journey, err := journeyQueue.GetById(jid)
 	if err != nil {
 		return err
 	}
 
 	if journey.IsTravelling() {
-		carElement, car, err := cq.GetById(journey.Car)
+		carElement, car, err := carQ.GetById(journey.Car)
 		if err != nil {
 			return err
 		} else {
-			cq.Move(carElement, car.GetSize()+journey.GetSize())
-			defer cq.Delete(car.GetId())
+			carQ.Move(carElement, car.GetSize()+journey.GetSize())
+			defer carQ.Delete(car.GetId())
 		}
 	}
 	return nil

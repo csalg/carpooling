@@ -6,31 +6,31 @@ import (
 )
 
 func TestMatch(t *testing.T){
-	jq := NewJourneyQueue()
-	cq := NewCarQueue()
+	journeyQueue := NewJourneyQueue()
+	carQueue := NewCarQueue()
 
-	c1, _ := models.NewCar(1,6)
-	cq.Add(c1)
-	j1, _ := models.NewJourney(1,4)
-	j2, _ := models.NewJourney(2,2)
-	jq.Add(j1)
-	jq.Add(j2)
+	car1, _ := models.NewCar(1,6)
+	carQueue.Add(car1)
+	journey1, _ := models.NewJourney(1,4)
+	journey2, _ := models.NewJourney(2,2)
+	journeyQueue.Add(journey1)
+	journeyQueue.Add(journey2)
 
-	err := Match(cq,jq)
+	err := Match(carQueue, journeyQueue)
 	if err != nil {t.Errorf(err.Error())}
-	_, j, err := jq.GetById(1)
-	if j.Car != 1 {
-		t.Errorf("Car was not asigned properly. Expected 1, got %d", j.Car)
+	_, journey, err := journeyQueue.GetById(1)
+	if journey.Car != 1 {
+		t.Errorf("Car was not asigned properly. Expected 1, got %d", journey.Car)
 	}
 
-	err = Match(cq,jq)
+	err = Match(carQueue, journeyQueue)
 	if err != nil {t.Errorf(err.Error())}
 
-	mostAvailableSeats := cq.MostAvailableSeats()
+	mostAvailableSeats := carQueue.MostAvailableSeats()
 	if mostAvailableSeats != 0 { t.Errorf("Problem with the value of most available seats. Expected: %d. Got: %d", 0, mostAvailableSeats)}
 
-	for i := 1; i != len(cq.BySize); i++ {
-		if cq.BySize[i].Front() != nil {
+	for i := 1; i != len(carQueue.BySize); i++ {
+		if carQueue.BySize[i].Front() != nil {
 			t.Errorf("All queues greater than 0 should be empty, but i=%d isn't", i)
 		}
 	}
@@ -39,8 +39,8 @@ func TestMatch(t *testing.T){
 	// match should assign all cars and leave users waiting
 	seats := 4
 	for i:=2; i!=100; i++ {
-		c,_ := models.NewCar(i,seats)
-		cq.Add(c)
+		car,_ := models.NewCar(i,seats)
+		carQueue.Add(car)
 		if seats == 4 {
 			seats = 6
 		} else {
@@ -49,14 +49,14 @@ func TestMatch(t *testing.T){
 	}
 	for i:=3; i!=2000; i++ {
 		j,_ := models.NewJourney(i,i%6+1)
-		jq.Add(j)
-		Match(cq,jq)
+		journeyQueue.Add(j)
+		Match(carQueue, journeyQueue)
 	}
 	for i :=1; i!=7; i++ {
-		if cq.BySize[i].Front() != nil {
+		if carQueue.BySize[i].Front() != nil {
 			t.Errorf("All cars should have been matched but some cars remain unassigned. i=%d", i)
 		}
-		if jq.BySize[i].Front() == nil {
+		if journeyQueue.BySize[i].Front() == nil {
 			t.Errorf("There should be users waiting for rides. i=%d", i)
 		}
 	}

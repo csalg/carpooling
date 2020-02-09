@@ -1,6 +1,6 @@
 // This is the specialized version of a HashQueue for cars, with additional 
 // logic wrapping the Car json deserializer, and a matching procedure between
-// a CarQueue and a JourneyQueue.
+// a CarQueue and a journeyQueueType.
 package data
 
 import (
@@ -12,50 +12,50 @@ import (
 	"fmt"
 )
 
-type carQueue struct {
+type carQueueType struct {
 	backing.HashQueue
 }
 
-// NewCarQueue is the constructor for carQueue, which is kept private
+// NewCarQueue is the constructor for carQueueType, which is kept private
 // to prevent the client from not initializing the map and getting nil
 // pointer errors
-func NewCarQueue()*carQueue {
-	q := new(carQueue)
-	q.ById = make(map[int]*list.Element)
-	return q
+func NewCarQueue()*carQueueType {
+	carQueue := new(carQueueType)
+	carQueue.ById = make(map[int]*list.Element)
+	return carQueue
 }
 
 // This is just sugar for changeSize.
-func (q *carQueue) Move(el *list.Element, new_seats_available int) error {
-	el, err := q.ChangeSize(el,new_seats_available)
+func (carQueue *carQueueType) Move(element *list.Element, newSeatsAvailable int) error {
+	element, err := carQueue.ChangeSize(element, newSeatsAvailable)
 	if err != nil {return err}
-	err = el.Value.(*models.Car).SetSeatsAvailable(new_seats_available)
+	err = element.Value.(*models.Car).SetSeatsAvailable(newSeatsAvailable)
 	return err
 }
 
 
 // MakeFromJsonRequest first calls the BodyToCars decoder and
 // if that succeeds overwrites the CarQueue with the new ones.
-func (q *carQueue) MakeFromJsonRequest(b io.ReadCloser)error{
+func (carQueue *carQueueType) MakeFromJsonRequest(b io.ReadCloser)error{
 
-	cars, err := models.BodyToCars(b)
+	carsArray, err := models.BodyToCars(b)
 	if err != nil { return err }
-	*q = *NewCarQueue()
+	*carQueue = *NewCarQueue()
 
-	for _, car := range *cars {
-		q.Add(&car)
+	for _, car := range *carsArray {
+		carQueue.Add(&car)
 	}
-	fmt.Println("[MakeFromJsonRequest] MostAvailableSeats: ", q.MostAvailableSeats())
+	fmt.Println("[MakeFromJsonRequest] MostAvailableSeats: ", carQueue.MostAvailableSeats())
 
 	return nil
 }
 
 // GetCarLargerThan returns a car larger than or equal to val
-func (q *carQueue) GetCarLargerThan(val int) (*list.Element, *models.Car, error) {
+func (carQueue *carQueueType) GetCarLargerThan(val int) (*list.Element, *models.Car, error) {
 	for i := val; i <= 6; i++ {
-		if q.BySize[i].Front() != nil { 
-			c, ok := q.BySize[i].Front().Value.(*models.Car)
-			if ok { return q.BySize[i].Front(), c, nil }
+		if carQueue.BySize[i].Front() != nil {
+			c, ok := carQueue.BySize[i].Front().Value.(*models.Car)
+			if ok { return carQueue.BySize[i].Front(), c, nil }
 		}
 	}
 	return nil, nil, errors.New("Car not found!")
@@ -63,19 +63,19 @@ func (q *carQueue) GetCarLargerThan(val int) (*list.Element, *models.Car, error)
 
 // MaxAvailable finds the car with the most seats available 
 // and returns the amount.
-func (q *carQueue) MostAvailableSeats() int {
-	for i := len(q.BySize)-1; i != -1; i-- {
-		if q.BySize[i].Front() != nil { 
+func (carQueue *carQueueType) MostAvailableSeats() int {
+	for i := len(carQueue.BySize)-1; i != -1; i-- {
+		if carQueue.BySize[i].Front() != nil {
 			return i
 		}
 	}
 	return 0
 }
 
-func (q *carQueue ) GetById(id int) (*list.Element, *models.Car, error){
-	el, ok := q.ById[id]
+func (carQueue *carQueueType) GetById(id int) (*list.Element, *models.Car, error){
+	element, ok := carQueue.ById[id]
 	if !ok {
 		return nil, nil, errors.New("Not found")
 	}
-	return el, el.Value.(*models.Car), nil
+	return element, element.Value.(*models.Car), nil
 }

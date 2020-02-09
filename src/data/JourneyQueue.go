@@ -7,21 +7,20 @@ import (
 	"github.com/csalg/carpooling/src/models"
 	"io"
 	"time"
-	"fmt"
 )
 
-type JourneyQueue struct {
+type journeyQueueType struct {
 	backing.HashQueue
 }
 
-func NewJourneyQueue()*JourneyQueue {
-	jq := new(JourneyQueue)
-	jq.ById = make(map[int]*list.Element)
-	return jq
+func NewJourneyQueue()*journeyQueueType {
+	journeyQueue := new(journeyQueueType)
+	journeyQueue.ById = make(map[int]*list.Element)
+	return journeyQueue
 }
 
-func (q *JourneyQueue) GetOldestSmallerThan(val int)(*list.Element, *models.Journey, error){
-	if val > len(q.BySize) || val < 1 { 
+func (journeyQueue *journeyQueueType) GetOldestSmallerThan(val int)(*list.Element, *models.Journey, error){
+	if val > len(journeyQueue.BySize) || val < 1 {
 		return nil, nil, errors.New("Value is outside range") 
 	}
 	
@@ -32,13 +31,13 @@ func (q *JourneyQueue) GetOldestSmallerThan(val int)(*list.Element, *models.Jour
 	element, journey = nil, nil
 
 	for i := 1; i != val+1; i++ {
-		temp := q.BySize[i].Front()
-		if temp != nil {
-			journeyCandidate := q.BySize[i].Front().Value.(*models.Journey)
-			if journeyCandidate.GetTimestamp() < timestamp { 
-				element   = temp
-				journey   = journeyCandidate
-				timestamp = journeyCandidate.GetTimestamp()
+		maybeElement := journeyQueue.BySize[i].Front()
+		if maybeElement != nil {
+			maybeCandidate := journeyQueue.BySize[i].Front().Value.(*models.Journey)
+			if maybeCandidate.GetTimestamp() < timestamp {
+				element   = maybeElement
+				journey   = maybeCandidate
+				timestamp = maybeCandidate.GetTimestamp()
 			}
 		}
 	}
@@ -48,23 +47,22 @@ func (q *JourneyQueue) GetOldestSmallerThan(val int)(*list.Element, *models.Jour
 	return element, journey, nil
 }
 
-func (q *JourneyQueue) AddFromJsonRequest(b io.ReadCloser) error {
-	j, err := models.NewJourneyFromBody(b)
+func (journeyQueue *journeyQueueType) AddFromJsonRequest(body io.ReadCloser) error {
+	journey, err := models.NewJourneyFromBody(body)
 	if err != nil { return err }
-	q.Add(j)
+	journeyQueue.Add(journey)
 	return nil
 }
 
-func (jq *JourneyQueue) AssignCar(journey_element *list.Element, journey *models.Journey, cid int){
-	journey.AssignCar(cid)
-	jq.BySize[journey.GetSize()].Remove(journey_element)
-	fmt.Println("Car was assigned: ", journey.Car)
+func (journeyQueue *journeyQueueType) AssignCar(journeyElement *list.Element, journey *models.Journey, carId int){
+	journey.AssignCar(carId)
+	journeyQueue.BySize[journey.GetSize()].Remove(journeyElement)
 }
 
-func (q *JourneyQueue ) GetById(id int) (*list.Element, *models.Journey, error){
-	el, ok := q.ById[id]
+func (journeyQueue *journeyQueueType) GetById(id int) (*list.Element, *models.Journey, error){
+	element, ok := journeyQueue.ById[id]
 	if !ok {
 		return nil, nil, errors.New("Not found")
 	}
-	return el, el.Value.(*models.Journey), nil
+	return element, element.Value.(*models.Journey), nil
 }

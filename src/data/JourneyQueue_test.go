@@ -46,7 +46,7 @@ func TestJourneyQueueDelete(t *testing.T){
 	for i := 1; i != 500; i++ {
 		jq.Delete(i)
 		_, exists := jq.ById[i]
-		if exists { t.Errorf("Error deleting key from JourneyQueue")}
+		if exists { t.Errorf("Error deleting key from journeyQueueType")}
 	}
 
 	for i :=0; i!=7; i++{
