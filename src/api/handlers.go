@@ -1,20 +1,13 @@
 package api
 
 import (
+	"github.com/csalg/carpooling/src/data"
+	"github.com/unrolled/render"
 	//"fmt"
 	"log"
 	"net/http"
-	"github.com/unrolled/render"
 	"net/http/httputil"
-
-	// "encoding/json"
-	//_:="fmt"
-	// "io/ioutil"
-	// "reflect"
 	"strconv"
-	"github.com/csalg/carpooling/src/data"
-	// "github.com/csalg/carpooling/models"
-	//_:="net/http/httputil"
 )
 
 var carQueue = data.NewCarQueue()

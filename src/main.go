@@ -1,5 +1,3 @@
-// TODO
-// * Could add a yaml with parameters. Some parameters: car sizes, group sizes.
 
 package main
 
@@ -16,6 +14,5 @@ func main() {
 
 	server := NewServer()
 	server.Run(":"+port)
-	//http.ListenAndServe("0.0.0.0:"+port, server)
 
 }

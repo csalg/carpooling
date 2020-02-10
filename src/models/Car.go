@@ -7,11 +7,13 @@ import (
 	"encoding/json"
 )
 
+
 type Car struct {
 	Id int `json:"id"`
 	Seats int `json:"seats"`
 	seatsAvailable int
 }
+
 
 func NewCar(id int, seats int) (*Car, error) {
 	if !(seats == 4 || seats == 6){
@@ -33,6 +35,7 @@ func (car Car) SetSize(val int) error {
 	return 	car.SetSeatsAvailable(val)
 }
 
+
 func (car *Car) SetSeatsAvailable (val int) error{
 	if val < 0 || val > 6 {
 		return errors.New("Cars are required to have 0 to 6 available seats.")
@@ -41,6 +44,7 @@ func (car *Car) SetSeatsAvailable (val int) error{
 	return nil
 }
 
+
 // Serialization
 
 type CarJson struct {
@@ -48,9 +52,11 @@ type CarJson struct {
 	Seats int `json:"seats"`
 }
 
+
 func NewCarJson(id, seats int) *CarJson {
 	return &CarJson{id,seats}
 }
+
 
 // BodyToCars deserializes from a json request to []Car
 func BodyToCars(body io.ReadCloser) (*[]Car, error) {
@@ -68,6 +74,7 @@ func BodyToCars(body io.ReadCloser) (*[]Car, error) {
 
 	return &carsArray, nil
 }
+
 
 func (car *Car) ToCarJson() *CarJson {
 	return NewCarJson(car.Id, car.Seats)

@@ -7,7 +7,7 @@ import (
 	"github.com/unrolled/render"
 )
 
-// NewServer configures and returns a Server.
+// NewServer configures and returns a negroni handler.
 func NewServer() *negroni.Negroni {
 
 	formatter := render.New(render.Options{
@@ -24,6 +24,7 @@ func NewServer() *negroni.Negroni {
 	return n
 }
 
+// initRoutes is where all the url routing happens (maps url strings to handler functions)
 func initRoutes(mx *mux.Router, formatter *render.Render) {
 	mx.HandleFunc("/status", api.StatusHandler(formatter))
 	mx.HandleFunc("/cars", api.CarsHandler(formatter))
