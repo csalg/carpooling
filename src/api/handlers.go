@@ -13,9 +13,12 @@ import (
 var carQueue = data.NewCarQueue()
 var journeyQueue = data.NewJourneyQueue()
 
-
 var requestCounter = 0
-// printRequest is a helper used for debugging
+
+
+// printRequest is a helper function which I wrote after the strange behaviour of those acceptance tests
+// for debugging purposes. It uses the default logger, so it can also output to file by calling log.SetOutput(stream)
+// somewhere.
 func printRequest(request *http.Request){
 	requestDump, err := httputil.DumpRequest(request, true)
 	if err != nil {
@@ -164,8 +167,7 @@ func LocateHandler (formatter *render.Render) http.HandlerFunc {
 
 			if !journeyQueue.Has(id){
 				responseWriter.WriteHeader(http.StatusNotFound)
-
-				//http.Error(responseWriter,"Not found!", 404)
+				//http.Error(responseWriter,"Not found!", 404) // Acceptance test wants an empty body.
 				return
 			}
 

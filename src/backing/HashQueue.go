@@ -39,17 +39,23 @@ type HashQueue struct {
 	BySize [7]list.List
 }
 
+
+// NewHashQueue is the constructor/factory function.
 func NewHashQueue()*HashQueue {
 	q := new(HashQueue)
 	q.ById = make(map[int]*list.Element)
 	return q
 }
 
+
+// Has is true if an id corresponds to an element in the structure and false otherwise.
 func (q *HashQueue) Has(id int) bool {
 	_, ok := q.ById[id]
 	return ok
 }
 
+
+// Add adds an element into the structure.
 func (q *HashQueue) Add(e WithSizeAndId) error {
 	if e == nil || reflect.ValueOf(e).IsNil() { 
 		return errors.New("Cannot add a null pointer.")
@@ -66,6 +72,8 @@ func (q *HashQueue) Add(e WithSizeAndId) error {
 	return nil
 }
 
+
+// Delete eliminates an element from both the map and the queue. Returns an error if not found.
 func (q *HashQueue) Delete (id int) error {
 	el, ok := q.ById[id]
 	if !ok { return errors.New("Id not found")}
@@ -76,6 +84,7 @@ func (q *HashQueue) Delete (id int) error {
 }
 
 
+// ChangeSize moves elements from one queue to another.
 func (q *HashQueue) ChangeSize(el *list.Element, newSize int) (*list.Element, error) {
 	if newSize < 0 || newSize > len(q.BySize)-1 {
 		return nil, errors.New("Invalid new size.")
@@ -89,19 +98,8 @@ func (q *HashQueue) ChangeSize(el *list.Element, newSize int) (*list.Element, er
 		return nil, err
 	}
 
-	//fmt.Println("Before")
-	//fmt.Print(q.BySize[previousSize].Front() == nil, " / ")
-	//fmt.Print(q.BySize[newSize].Front() == nil, " / ")
-	//fmt.Print(q.BySize[previousSize].Len(), " / ")
-	//fmt.Println(q.BySize[newSize].Len())
 	el_ := q.BySize[previousSize].Remove(el)
 	q.BySize[newSize].PushBack(el_)
 	q.ById[id] = q.BySize[newSize].Back()
-	//fmt.Println("After")
-	//fmt.Printf("Removed from %d, now in %d \n", previousSize, newSize)
-	//fmt.Print(q.BySize[previousSize].Front() == nil, " / ")
-	//fmt.Print(q.BySize[newSize].Front() == nil, " / ")
-	//fmt.Print(q.BySize[previousSize].Len(), " / ")
-	//fmt.Println(q.BySize[newSize].Len())
 	return el, nil
 }

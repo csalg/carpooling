@@ -15,6 +15,7 @@ type carQueueType struct {
 	backing.HashQueue
 }
 
+
 // NewCarQueue is the constructor for carQueueType, which is kept private
 // to prevent the client from not initializing the map and getting nil
 // pointer errors
@@ -48,6 +49,7 @@ func (carQueue *carQueueType) MakeFromJsonRequest(b io.ReadCloser)error{
 	return nil
 }
 
+
 // GetCarLargerThan returns a car larger than or equal to val
 func (carQueue *carQueueType) GetCarLargerThan(val int) (*list.Element, *models.Car, error) {
 	for i := val; i <= 6; i++ {
@@ -58,6 +60,7 @@ func (carQueue *carQueueType) GetCarLargerThan(val int) (*list.Element, *models.
 	}
 	return nil, nil, errors.New("Car not found!")
 }
+
 
 // MaxAvailable finds the car with the most seats available 
 // and returns the amount.
@@ -70,6 +73,8 @@ func (carQueue *carQueueType) MostAvailableSeats() int {
 	return 0
 }
 
+
+// GetById fetches the list element and the car payload it contains or an error if not found
 func (carQueue *carQueueType) GetById(id int) (*list.Element, *models.Car, error){
 	element, ok := carQueue.ById[id]
 	if !ok {
@@ -78,6 +83,8 @@ func (carQueue *carQueueType) GetById(id int) (*list.Element, *models.Car, error
 	return element, element.Value.(*models.Car), nil
 }
 
+
+// GetCarJsonById returns a CarJson object or an error if the ID is not in the structure.
 func (carQueue *carQueueType) GetCarJsonById(id int) (*models.CarJson, error){
 	_, car, err := carQueue.GetById(id)
 	if err != nil {
