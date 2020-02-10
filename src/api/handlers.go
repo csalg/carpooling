@@ -1,3 +1,4 @@
+// The API layer contains all the presentation logic (different error cases, etc.)
 package api
 
 import (

@@ -1,3 +1,4 @@
+// Data model package.
 package models
 
 import (

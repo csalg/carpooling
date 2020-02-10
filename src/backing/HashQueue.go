@@ -1,19 +1,6 @@
-/*
-Both the CarQueue and JourneyQueue have some common elements. Following SOLID
-principles, it makes sense to abstract these common algorithmic patterns into
-a structure which is completely decoupled from the models so that they can be
-tested independently and reused.
-
-This data structure is designed to index objects with an ID and a size.
-The following operations are implemented in constant time & space:
-- Retrieval by id.
-- Retrieval by size of the oldest element in a queue (FIFO).
-- Deletion by id.
-- Changing size by id.
-The tradeoff is that iterating through its elements would be painfully slow
-(no locality of reference in linked lists).
-*/
-
+// A queue that allows CRUD operations by ID in constant time
+// thanks to a hashmap. It is a similar idea to a LRU cache but with more queues
+// (one per possible size).
 package backing
 
 import (

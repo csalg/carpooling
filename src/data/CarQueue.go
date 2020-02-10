@@ -1,6 +1,5 @@
-// This is the specialized version of a HashQueue for cars, with additional 
-// logic wrapping the Car json deserializer, and a matching procedure between
-// a CarQueue and a journeyQueueType.
+// This is the data access layer, which consists of specialised versions of the HashQueue (carQueue and journeyQueue)
+// and the Match and Dropoff functions.
 package data
 
 import (
