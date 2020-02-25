@@ -1,18 +1,19 @@
-package data
+package use_cases
 
 import (
+	"github.com/csalg/carpooling/src/domain/entities"
+	"github.com/csalg/carpooling/src/persistence"
 	"testing"
-	"github.com/csalg/carpooling/src/models"
 )
 
 func TestMatch(t *testing.T){
-	journeyQueue := NewJourneyQueue()
-	carQueue := NewCarQueue()
+	journeyQueue := persistence.NewJourneyRepository()
+	carQueue := persistence.NewCarRepository()
 
-	car1, _ := models.NewCar(1,6)
+	car1, _ := entities.NewCar(1,6)
 	carQueue.Add(car1)
-	journey1, _ := models.NewJourney(1,4)
-	journey2, _ := models.NewJourney(2,2)
+	journey1, _ := entities.NewJourney(1,4)
+	journey2, _ := entities.NewJourney(2,2)
 	journeyQueue.Add(journey1)
 	journeyQueue.Add(journey2)
 
@@ -39,7 +40,7 @@ func TestMatch(t *testing.T){
 	// match should assign all cars and leave users waiting
 	seats := 4
 	for i:=2; i!=100; i++ {
-		car,_ := models.NewCar(i,seats)
+		car,_ := entities.NewCar(i,seats)
 		carQueue.Add(car)
 		if seats == 4 {
 			seats = 6
@@ -48,7 +49,7 @@ func TestMatch(t *testing.T){
 		}
 	}
 	for i:=3; i!=2000; i++ {
-		j,_ := models.NewJourney(i,i%6+1)
+		j,_ := entities.NewJourney(i,i%6+1)
 		journeyQueue.Add(j)
 		Match(carQueue, journeyQueue)
 	}

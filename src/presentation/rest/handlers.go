@@ -1,37 +1,37 @@
 // The API layer contains all the presentation logic (different error cases, etc.)
-package api
+package rest
 
 import (
-	"github.com/csalg/carpooling/src/data"
+	"github.com/csalg/carpooling/src/domain/use_cases"
+	"github.com/csalg/carpooling/src/_settings"
 	"github.com/unrolled/render"
-	//"fmt"
-	"log"
+
 	"net/http"
-	"net/http/httputil"
 	"strconv"
 )
 
-var carQueue = data.NewCarQueue()
-var journeyQueue = data.NewJourneyQueue()
+var carRepository = _settings.NewCarRepository()
+var journeyRepository = _settings.NewJourneyRepository()
 
-var requestCounter = 0
-
-
+//var requestCounter = 0
 // printRequest is a helper function which I wrote after the strange behaviour of those acceptance tests
 // for debugging purposes. It uses the default logger, so it can also output to file by calling log.SetOutput(stream)
 // somewhere.
-func printRequest(request *http.Request){
-	requestDump, err := httputil.DumpRequest(request, true)
-	if err != nil {
-		log.Println(err)
-	  }
-	log.Println("\n---------------------------- # " + strconv.Itoa(requestCounter) + " # ----------------------------\n" )
-	log.Println(string(requestDump))
-	requestCounter++
+//func printRequest(request *http.Request){
+//	requestDump, err := httputil.DumpRequest(request, true)
+//	if err != nil {
+//		log.Println(err)
+//	  }
+//	log.Println("\n---------------------------- # " + strconv.Itoa(requestCounter) + " # ----------------------------\n" )
+//	log.Println(string(requestDump))
+//	requestCounter++
+//}
+
+func printRequest(request *http.Request) {
 }
 
-// StatusHandler responds with a 200 OK when it handles a GET request
-func StatusHandler (formatter *render.Render) http.HandlerFunc {
+// Status responds with a 200 OK when it handles a GET request
+func Status(formatter *render.Render) http.HandlerFunc {
 
 	return func(responseWriter http.ResponseWriter, request *http.Request) {
 		printRequest(request)
@@ -48,23 +48,23 @@ func StatusHandler (formatter *render.Render) http.HandlerFunc {
 }
 
 
-// CarsHandler loads the list of available cars in the service 
-// and removes all previous data (existing journeys and cars).
+// Cars loads the list of available cars in the service
+// and removes all previous persistence (existing journeys and cars).
 // This method may be called more than once during the life cycle 
 // of the service.
-func CarsHandler (formatter *render.Render) http.HandlerFunc {
+func Cars(formatter *render.Render) http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, request *http.Request) {
 		printRequest(request)
 
 		if 	request.Header.Get("Content-type") == "application/json" &&
 			request.Method == "PUT" {
-			err := carQueue.MakeFromJsonRequest(request.Body)
+			err := carRepository.MakeFromJsonRequest(request.Body)
 			if err != nil {
 				http.Error(responseWriter, err.Error(), 400)
 				return
 			}
 
-			journeyQueue = data.NewJourneyQueue()
+			journeyRepository = _settings.NewJourneyRepository()
 			formatter.JSON(responseWriter,http.StatusOK,"Cars updated successfully")
 			return
 		} else {
@@ -74,23 +74,23 @@ func CarsHandler (formatter *render.Render) http.HandlerFunc {
 	}
 }
 
-// JourneyHandler registers individual groups of people 
+// Journey registers individual groups of people
 // looking for rides on the system
-func JourneyHandler (formatter *render.Render) http.HandlerFunc {
+func Journey(formatter *render.Render) http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, request *http.Request) {
 		printRequest(request)
 
 		if 	request.Header.Get("Content-type") == "application/json" &&
 			request.Method == "POST" {
 
-			err := journeyQueue.AddFromJsonRequest(request.Body)
+			err := journeyRepository.AddFromJsonRequest(request.Body)
 
 			if err != nil {
 				http.Error(responseWriter, err.Error(), 400)
 				return
 			}
 
-			data.Match(carQueue, journeyQueue)
+			use_cases.Match(carRepository, journeyRepository)
 			responseWriter.WriteHeader(http.StatusOK)
 			return
 		} else {
@@ -100,7 +100,7 @@ func JourneyHandler (formatter *render.Render) http.HandlerFunc {
 	}
 }
 
-// DropoffHandler deletes journeys from the system. Specs: 
+// Dropoff deletes journeys from the system. Specs:
 // **Body** _required_ A form with the group ID, such that `ID=X`
 // **Content Type** `application/x-www-form-urlencoded`
 // Responses:
@@ -108,7 +108,7 @@ func JourneyHandler (formatter *render.Render) http.HandlerFunc {
 // * **404 Not Found** When the group is not to be found.
 // * **400 Bad Request** When there is a failure in the request format or the
 //   payload can't be unmarshalled.
-func DropoffHandler (formatter *render.Render) http.HandlerFunc {
+func Dropoff(formatter *render.Render) http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, request *http.Request) {
 		printRequest(request)
 
@@ -126,11 +126,11 @@ func DropoffHandler (formatter *render.Render) http.HandlerFunc {
 				return
 			}
 
-			if !journeyQueue.Has(id){
+			if !journeyRepository.Has(id){
 				http.Error(responseWriter,"Not found", 404)
 				return
 			}
-			err = data.Dropoff(carQueue, journeyQueue, id)
+			err = use_cases.Dropoff(carRepository, journeyRepository, id)
 			if err != nil {
 				http.Error(responseWriter,err.Error(), 400)
 				return
@@ -145,9 +145,9 @@ func DropoffHandler (formatter *render.Render) http.HandlerFunc {
 	}
 }
 
-// LocateHandler returns the car the group is traveling
+// Locate returns the car the group is traveling
 // with, or no car if they are still waiting to be served.
-func LocateHandler (formatter *render.Render) http.HandlerFunc {
+func Locate(formatter *render.Render) http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, request *http.Request) {
 		printRequest(request)
 
@@ -166,13 +166,13 @@ func LocateHandler (formatter *render.Render) http.HandlerFunc {
 				return
 			}
 
-			if !journeyQueue.Has(id){
+			if !journeyRepository.Has(id){
 				responseWriter.WriteHeader(http.StatusNotFound)
 				//http.Error(responseWriter,"Not found!", 404) // Acceptance test wants an empty body.
 				return
 			}
 
-			_, journey, err := journeyQueue.GetById(id)
+			_, journey, err := journeyRepository.GetById(id)
 			if err != nil {
 				http.Error(responseWriter,err.Error(), 400)
 				return
@@ -182,7 +182,7 @@ func LocateHandler (formatter *render.Render) http.HandlerFunc {
 				formatter.JSON(responseWriter,204,"")
 				return
 			} else {
-				carJson, err := carQueue.GetCarJsonById(journey.Car)
+				carJson, err := carRepository.GetCarJsonById(journey.Car)
 				if err != nil {
 					http.Error(responseWriter, "Error retrieving car", 400)
 					return

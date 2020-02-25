@@ -1,5 +1,5 @@
 // Data model package.
-package models
+package entities
 
 import (
 	"errors"

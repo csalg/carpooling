@@ -1,7 +1,6 @@
 FROM alpine:3.8
 
-# This Dockerfile is optimized for go binaries, change it as much as necessary
-# for your language of choice.
+# This Dockerfile can be used in a GitLab pipeline.
 
 RUN apk --no-cache add ca-certificates=20190108-r0 libc6-compat=1.1.19-r11
 RUN mkdir /app

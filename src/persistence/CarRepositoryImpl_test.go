@@ -1,23 +1,22 @@
-package data
+package persistence
 
 import (
 	"fmt"
+	"github.com/csalg/carpooling/src/domain/entities"
 	"testing"
-	// "fmt"
-	"github.com/csalg/carpooling/src/models"
 )
 
 func TestCarQueueAdd(t *testing.T){
 
-	cq := NewCarQueue()
+	cq := NewCarRepository()
 
-	c, err := models.NewCar(1,7)
+	c, err := entities.NewCar(1,7)
 	err = cq.Add(c)
 	if err == nil {
 		t.Errorf("Queue inserted a car outside range!")
 	}
 
-	c, err = models.NewCar(2,6)
+	c, err = entities.NewCar(2,6)
 	err = cq.Add(c)
 	if err != nil {
 		t.Errorf("Queue didn't insert a valid car!")
@@ -31,12 +30,12 @@ func TestCarQueueAdd(t *testing.T){
 
 func TestCarQueueMove(t *testing.T){
 	
-	c1, err1 := models.NewCar(1,6)
-	c2, err2 := models.NewCar(2,6)
+	c1, err1 := entities.NewCar(1,6)
+	c2, err2 := entities.NewCar(2,6)
 	if err1 != nil || err2 != nil{
 		t.Errorf("Error constructing a valid car")
 	}
-	cq := NewCarQueue()
+	cq := NewCarRepository()
 	err1 = cq.Add(c1)
 	err2 = cq.Add(c2)
 	if err1 != nil || err2 != nil{
@@ -68,12 +67,12 @@ func TestCarQueueMove(t *testing.T){
 }
 
 func TestGetCarLargerThan(t *testing.T){
-	c1, err1 := models.NewCar(1,6)
-	c2, err2 := models.NewCar(2,6)
+	c1, err1 := entities.NewCar(1,6)
+	c2, err2 := entities.NewCar(2,6)
 	if err1 != nil || err2 != nil{
 		t.Errorf("Error constructing a valid car")
 	}
-	cq := NewCarQueue()
+	cq := NewCarRepository()
 	err1 = cq.Add(c1)
 	err2 = cq.Add(c2)
 	if err1 != nil || err2 != nil{

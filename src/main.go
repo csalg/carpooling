@@ -2,6 +2,7 @@
 package main
 
 import (
+	"github.com/csalg/carpooling/src/presentation/rest"
 	"os"
 )
 
@@ -12,7 +13,7 @@ func main() {
 		port = "9091"
 	 }
 
-	server := NewServer()
+	server := rest.NewServer()
 	server.Run(":"+port)
 
 }

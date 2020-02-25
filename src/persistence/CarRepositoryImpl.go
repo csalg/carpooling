@@ -1,24 +1,23 @@
-// This is the data access layer, which consists of specialised versions of the HashQueue (carQueue and journeyQueue)
+// This is the persistence access layer, which consists of specialised versions of the HashQueue (carQueue and journeyQueue)
 // and the Match and Dropoff functions.
-package data
+package persistence
 
 import (
 	"container/list"
 	"errors"
-	"github.com/csalg/carpooling/src/backing"
-	"github.com/csalg/carpooling/src/models"
+	"github.com/csalg/carpooling/src/domain/entities"
 	"io"
 )
 
 type carQueueType struct {
-	backing.HashQueue
+	HashQueue
 }
 
 
-// NewCarQueue is the constructor for carQueueType, which is kept private
+// NewCarRepository is the constructor for carQueueType, which is kept private
 // to prevent the client from not initializing the map and getting nil
 // pointer errors
-func NewCarQueue()*carQueueType {
+func NewCarRepository()*carQueueType {
 	carQueue := new(carQueueType)
 	carQueue.ById = make(map[int]*list.Element)
 	return carQueue
@@ -28,7 +27,7 @@ func NewCarQueue()*carQueueType {
 func (carQueue *carQueueType) Move(element *list.Element, newSeatsAvailable int) error {
 	element, err := carQueue.ChangeSize(element, newSeatsAvailable)
 	if err != nil {return err}
-	err = element.Value.(*models.Car).SetSeatsAvailable(newSeatsAvailable)
+	err = element.Value.(*entities.Car).SetSeatsAvailable(newSeatsAvailable)
 	return err
 }
 
@@ -37,9 +36,9 @@ func (carQueue *carQueueType) Move(element *list.Element, newSeatsAvailable int)
 // if that succeeds overwrites the CarQueue with the new ones.
 func (carQueue *carQueueType) MakeFromJsonRequest(b io.ReadCloser)error{
 
-	carsArray, err := models.BodyToCars(b)
+	carsArray, err := entities.BodyToCars(b)
 	if err != nil { return err }
-	*carQueue = *NewCarQueue()
+	*carQueue = *NewCarRepository()
 
 	for _, car := range *carsArray {
 		carQueue.Add(&car)
@@ -50,10 +49,10 @@ func (carQueue *carQueueType) MakeFromJsonRequest(b io.ReadCloser)error{
 
 
 // GetCarLargerThan returns a car larger than or equal to val
-func (carQueue *carQueueType) GetCarLargerThan(val int) (*list.Element, *models.Car, error) {
+func (carQueue *carQueueType) GetCarLargerThan(val int) (*list.Element, *entities.Car, error) {
 	for i := val; i <= 6; i++ {
 		if carQueue.BySize[i].Front() != nil {
-			c, ok := carQueue.BySize[i].Front().Value.(*models.Car)
+			c, ok := carQueue.BySize[i].Front().Value.(*entities.Car)
 			if ok { return carQueue.BySize[i].Front(), c, nil }
 		}
 	}
@@ -74,17 +73,17 @@ func (carQueue *carQueueType) MostAvailableSeats() int {
 
 
 // GetById fetches the list element and the car payload it contains or an error if not found
-func (carQueue *carQueueType) GetById(id int) (*list.Element, *models.Car, error){
+func (carQueue *carQueueType) GetById(id int) (*list.Element, *entities.Car, error){
 	element, ok := carQueue.ById[id]
 	if !ok {
 		return nil, nil, errors.New("Not found")
 	}
-	return element, element.Value.(*models.Car), nil
+	return element, element.Value.(*entities.Car), nil
 }
 
 
 // GetCarJsonById returns a CarJson object or an error if the ID is not in the structure.
-func (carQueue *carQueueType) GetCarJsonById(id int) (*models.CarJson, error){
+func (carQueue *carQueueType) GetCarJsonById(id int) (*entities.CarJson, error){
 	_, car, err := carQueue.GetById(id)
 	if err != nil {
 		return nil, err

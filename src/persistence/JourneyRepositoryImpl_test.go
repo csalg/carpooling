@@ -1,27 +1,27 @@
-package data
+package persistence
 
 import (
-	"testing"
 	"fmt"
-	"github.com/csalg/carpooling/src/models"
+	"github.com/csalg/carpooling/src/domain/entities"
+	"testing"
 )
 
 func TestJourneyQueueAdd(t *testing.T){
-	jq := NewJourneyQueue()
+	jq := NewJourneyRepository()
 
-	j, err := models.NewJourney(1,7)
+	j, err := entities.NewJourney(1,7)
 	err = jq.Add(j)
 	if err == nil {
 		t.Errorf("Queue inserted a journey outside range!")
 	}
 
-	j, err = models.NewJourney(1,2)
+	j, err = entities.NewJourney(1,2)
 	err = jq.Add(j)
 	if err != nil {
 		t.Errorf("Failed to insert a valid journey.")
 	}
 
-	j, err = models.NewJourney(1,3)
+	j, err = entities.NewJourney(1,3)
 	err = jq.Add(j)
 	if err == nil {
 		t.Errorf("Inserted a journey with a known duplicate key.")
@@ -33,10 +33,10 @@ func TestJourneyQueueAdd(t *testing.T){
 }
 
 func TestJourneyQueueDelete(t *testing.T){
-	jq := NewJourneyQueue()
+	jq := NewJourneyRepository()
 
 	for i := 1; i != 500; i++ {
-		j, err := models.NewJourney(i,i%5+1)
+		j, err := entities.NewJourney(i,i%5+1)
 		err = jq.Add(j)
 		if err != nil {
 			t.Errorf(fmt.Sprintf("Error adding journey. i=%d", i))
@@ -58,9 +58,9 @@ func TestJourneyQueueDelete(t *testing.T){
 
 
 func TestGetOldestSmallerThan(t *testing.T){
-	jq := NewJourneyQueue()
-	j1, err1 := models.NewJourney(1,5)
-	j2, err2 := models.NewJourney(2,1)
+	jq := NewJourneyRepository()
+	j1, err1 := entities.NewJourney(1,5)
+	j2, err2 := entities.NewJourney(2,1)
 	if err1 != nil || err2 != nil {
 		t.Errorf("Error constructing journeys.")
 	}
@@ -70,7 +70,7 @@ func TestGetOldestSmallerThan(t *testing.T){
 	}
 
 	for i:= 3; i != 100; i++ {
-		j,_ := models.NewJourney(i, i%5+2)
+		j,_ := entities.NewJourney(i, i%5+2)
 		jq.Add(j)
 	}
 

@@ -1,8 +1,7 @@
-package main
+package rest
 
 import (
 	"github.com/codegangsta/negroni"
-	"github.com/csalg/carpooling/src/api"
 	"github.com/gorilla/mux"
 	"github.com/unrolled/render"
 )
@@ -26,9 +25,9 @@ func NewServer() *negroni.Negroni {
 
 // initRoutes is where all the url routing happens (maps url strings to handler functions)
 func initRoutes(mx *mux.Router, formatter *render.Render) {
-	mx.HandleFunc("/status", api.StatusHandler(formatter))
-	mx.HandleFunc("/cars", api.CarsHandler(formatter))
-	mx.HandleFunc("/journey", api.JourneyHandler(formatter))
-	mx.HandleFunc("/dropoff", api.DropoffHandler(formatter))
-	mx.HandleFunc("/locate", api.LocateHandler(formatter))
+	mx.HandleFunc("/status", Status(formatter))
+	mx.HandleFunc("/cars", Cars(formatter))
+	mx.HandleFunc("/journey", Journey(formatter))
+	mx.HandleFunc("/dropoff", Dropoff(formatter))
+	mx.HandleFunc("/locate", Locate(formatter))
 }

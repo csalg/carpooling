@@ -1,39 +1,25 @@
 // A queue that allows CRUD operations by ID in constant time
 // thanks to a hashmap. It is a similar idea to a LRU cache but with more queues
 // (one per possible size).
-package backing
+package persistence
 
 import (
+	"github.com/csalg/carpooling/src/domain/interfaces"
 	"container/list"
 	// "time"
 	// "fmt"
 	"errors"
 	"reflect"
+
 )
 
 // WithSizeAndId is the interface that must be implemented by
 // anything that is compatible with a HashQueue.
-type WithSizeAndId interface {
-	GetId() int
-	GetSize() int
-	SetSize(id int) error
-
-}
-
 
 type HashQueue struct {
 	ById map[int]*list.Element
 	BySize [7]list.List
 }
-
-
-// NewHashQueue is the constructor/factory function.
-func NewHashQueue()*HashQueue {
-	q := new(HashQueue)
-	q.ById = make(map[int]*list.Element)
-	return q
-}
-
 
 // Has is true if an id corresponds to an element in the structure and false otherwise.
 func (q *HashQueue) Has(id int) bool {
@@ -43,7 +29,7 @@ func (q *HashQueue) Has(id int) bool {
 
 
 // Add adds an element into the structure.
-func (q *HashQueue) Add(e WithSizeAndId) error {
+func (q *HashQueue) Add(e interfaces.WithSizeAndId) error {
 	if e == nil || reflect.ValueOf(e).IsNil() { 
 		return errors.New("Cannot add a null pointer.")
 	}
@@ -65,7 +51,7 @@ func (q *HashQueue) Delete (id int) error {
 	el, ok := q.ById[id]
 	if !ok { return errors.New("Id not found")}
 
-	q.BySize[el.Value.(WithSizeAndId).GetSize()].Remove(el)
+	q.BySize[el.Value.(interfaces.WithSizeAndId).GetSize()].Remove(el)
 	delete(q.ById, id)
 	return nil
 }
@@ -77,7 +63,7 @@ func (q *HashQueue) ChangeSize(el *list.Element, newSize int) (*list.Element, er
 		return nil, errors.New("Invalid new size.")
 	}
 
-	val := el.Value.(WithSizeAndId)
+	val := el.Value.(interfaces.WithSizeAndId)
 	id := val.GetId()
 	previousSize := val.GetSize()
 	err := val.SetSize(newSize)
