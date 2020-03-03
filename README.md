@@ -2,16 +2,13 @@
 
 This is a simple project demonstrating a clean domain-driven architecture in Go. The domain itself has no dependencies
 
- It is a domain-driven architecture, similar to the Clean Architecture but with one outer layer instead of two. Of course in a large app with a lot of presentation options, interfacing with many databases, caching services and data sources, this would get split into two layers. 
+The architecture is similar to the Clean Architecture but with one outer layer instead of two. Of course in a large app with a lot of presentation options, interfacing with many databases, caching services and data sources, this would get split into two layers, but as a proof of concept of a clean architecture with inversion of control in Go this is not necessary.
 
 ## Dependencies graph
 
 The dependencies look like this:
 
-![]("./img/architecture.jpg")
-
-It differs slightly from the original Clean Architecture because there
-
+![](./img/architecture.jpg)
 
 ## API
 
