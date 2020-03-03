@@ -1,14 +1,16 @@
 # Domain-Driven Architecture in Go
 
-This is a simple project demonstrating a clean domain-driven architecture in Go. 
+This is a simple project demonstrating a clean domain-driven architecture in Go. The domain itself has no dependencies
+
+ It is a domain-driven architecture, similar to the Clean Architecture but with one outer layer instead of two. Of course in a large app with a lot of presentation options, interfacing with many databases, caching services and data sources, this would get split into two layers. 
+
 ## Dependencies graph
 
 The dependencies look like this:
 
-<img src="./img/architecture.jpg">
+![]("./img/architecture.jpg")
 
-The domain logic, being the most abstract and stable, has no dependencies. 
-The persistence and presentation layers depend on the domain. If these layers were more complex (e.g. multiple data sources, multiple apis), then they could themselves be split as well, giving way to the4-layer Clean Architecture.
+It differs slightly from the original Clean Architecture because there
 
 
 ## API
